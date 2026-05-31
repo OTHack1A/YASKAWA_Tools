@@ -23,9 +23,6 @@ jobs:
       - name: Build Windows executable
         run: pyinstaller main.spec
 
-      - name: Rename output
-        run: Rename-Item dist\main.exe YaskawaTools.exe
-
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
