@@ -23,6 +23,9 @@ jobs:
       - name: Build Windows executable
         run: pyinstaller main.spec
 
+      - name: Rename output
+        run: Rename-Item dist\main.exe YaskawaTools.exe
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
@@ -60,3 +63,38 @@ jobs:
         with:
           name: YaskawaTools-Linux
           path: dist/YaskawaTools
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: Build macOS app bundle
+        run: pyinstaller main_macos.spec
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          create-dmg \
+            --volname "YaskawaTools" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "YaskawaTools.app" 175 190 \
+            --app-drop-link 425 190 \
+            "dist/YaskawaTools.dmg" \
+            "dist/YaskawaTools.app"
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: YaskawaTools-macOS
+          path: dist/YaskawaTools.dmg
