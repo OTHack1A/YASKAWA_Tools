@@ -12,10 +12,10 @@ dist/*.log
 build/
 *.spec.bak
 
-# Compiled binaries (only pre-built ones in dist/ are tracked)
+# Compiled binaries — distribuiti via GitHub Releases, non nella repo
 dist/YaskawaTools
-dist/*.exe
-!dist/YaskawaTools.exe
+dist/YaskawaTools.exe
+dist/YaskawaTools.dmg
 
 # Environment
 .env
