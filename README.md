@@ -80,6 +80,13 @@ yaskawa-tools/
 
 ---
 
+## Digest control
+YaskawaTools-Linux --> sha256:7ecb107b376873189c7ab6f8a744df9a63100814aeac6d2c254d1dd058b84b2e
+YaskawaTools-Windows --> sha256:e757309b835ebf541d7800ec772412d9b3ef83b2b9aa89b085f6c91a6f77d87e
+YaskawaTools-macOS -->  sha256:01dfd4ea3e3cdb3c55d035a42d267ebedf068ec278faf8a6f59bdf94a032a0ca
+
+---
+
 ## Supported file formats (input)
 
 | File | Content |
