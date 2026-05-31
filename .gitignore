@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/*.log
+*.log
+
+# PyInstaller build artifacts
+build/
+*.spec.bak
+
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Auth state (generated at runtime)
+auth_state.json
+auth_state.json.tmp
+
+# Test output
+test_params.pdf
+*.pdf

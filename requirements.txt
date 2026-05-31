@@ -1,0 +1,10 @@
+PySide6
+reportlab
+openpyxl
+pypdf
+Pillow
+psutil
+argon2-cffi
+langdetect
+deep-translator
+beautifulsoup4
