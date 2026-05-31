@@ -137,7 +137,7 @@ Colonna **Valore** = impostazione consigliata/utilizzata (vuota = solo riferimen
 
 | Codice | Valore | Descrizione |
 |---|---|---|
-| R01Gx013 | -30000 | Inclinazione su asse X — dipende dalla macchina (ORION OMC). |
+| R01Gx013 | -30000 | Inclinazione su asse X — inclinazione robot (modificabile solo da Yaskawa). |
 | R01Gx014 | -30000 | Inclinazione su asse Y — inclinazione robot (modificabile solo da Yaskawa). |
 
 ---
