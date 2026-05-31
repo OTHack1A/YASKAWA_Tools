@@ -3,7 +3,9 @@
 Versione: v1.1.0 build 1  
 Piattaforma: Windows 10/11 (64-bit)  
 Dipendenze principali: Python 3.x, PySide6, ReportLab, openpyxl, pypdf
-<img width="1003" height="738" alt="image" src="https://github.com/user-attachments/assets/b9d6a4c3-7065-414b-83fe-c9f82cf32661" />
+
+<img width="1004" height="736" alt="image" src="https://github.com/user-attachments/assets/7255520b-ebcb-44b8-ba7a-0f5f8b18799f" />
+
 
 ---
 
@@ -104,8 +106,12 @@ Il modulo `translations.py` contiene le stringhe dell'interfaccia in tre lingue:
 
 | Codice | Lingua |
 |---|---|
-| `IT` | Italiano (default) |
+| `IT` | Italiano |
 | `EN` | English |
+| `FR' | French |
+| `DE` | Deutch|
+| `ES` | Espagnol |
+| `UA` | Uckranian |
 | `JA` | 日本語 (Japanese) |
 
 La lingua è selezionabile dalla Top Bar e viene mantenuta per la sessione corrente.
