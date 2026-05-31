@@ -1,4 +1,4 @@
-"""Shared PDF page header: company logo (left) + name (center) + blue bar."""
+"""Shared PDF page header: company logo (left) + name (center) + Red claude bar."""
 import os
 import sys
 from reportlab.lib.units import mm
