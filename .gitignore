@@ -12,6 +12,11 @@ dist/*.log
 build/
 *.spec.bak
 
+# Compiled binaries (only pre-built ones in dist/ are tracked)
+dist/YaskawaTools
+dist/*.exe
+!dist/YaskawaTools.exe
+
 # Environment
 .env
 .venv/
