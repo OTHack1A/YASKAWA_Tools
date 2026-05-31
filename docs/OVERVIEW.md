@@ -3,6 +3,7 @@
 Versione: v1.1.0 build 1  
 Piattaforma: Windows 10/11 (64-bit)  
 Dipendenze principali: Python 3.x, PySide6, ReportLab, openpyxl, pypdf
+<img width="1003" height="738" alt="image" src="https://github.com/user-attachments/assets/b9d6a4c3-7065-414b-83fe-c9f82cf32661" />
 
 ---
 
