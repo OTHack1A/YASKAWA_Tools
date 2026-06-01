@@ -24,6 +24,7 @@ class _NumericCommaDelegate(QStyledItemDelegate):
     _FINAL_RX = re.compile(r'^[+\-]?\d+([,]\d+)?$|^[+\-]?\d+$')
 
     def createEditor(self, parent, option, index):
+        """Create the numeric cell editor (accepting comma decimals)."""
         from PySide6.QtWidgets import QLineEdit
         editor = QLineEdit(parent)
         rx = QRegularExpression(r'^[+\-]?\d*([,]\d*)?$')
@@ -33,6 +34,7 @@ class _NumericCommaDelegate(QStyledItemDelegate):
         return editor
 
     def setModelData(self, editor, model, index):
+        """Validate and write the editor's numeric value back into the model."""
         text = editor.text().strip()
         if not text or self._FINAL_RX.match(text):
             model.setData(index, text)
@@ -47,6 +49,7 @@ class _NomeColumnDelegate(QStyledItemDelegate):
     _MAX = 16
 
     def createEditor(self, parent, option, index):
+        """Create the cell editor for a name column."""
         from PySide6.QtWidgets import QLineEdit
         editor = QLineEdit(parent)
         editor.setMaxLength(self._MAX)
@@ -57,6 +60,7 @@ class _NomeColumnDelegate(QStyledItemDelegate):
         return editor
 
     def setModelData(self, editor, model, index):
+        """Validate and write the editor's name value back into the model."""
         text = editor.text().strip()
         if not _RE_NOME.match(text):
             logger.warning("log_invalid_input", text)
@@ -72,6 +76,7 @@ class _ExcelPreview(QWidget):
 
     def __init__(self, excel_path, sheets_data, app_state,
                  on_close_cb, on_generate_cb, editable=False, nomi_mode=False):
+        """Build the Excel-preview widget for the given sheets."""
         super().__init__()
         self._excel_path   = excel_path
         self._app_state    = app_state
@@ -86,6 +91,7 @@ class _ExcelPreview(QWidget):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self, sheets_data):
+        """Build the preview's widgets (one tab per sheet, buttons)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -152,6 +158,7 @@ class _ExcelPreview(QWidget):
     # ── Language update ───────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the Excel preview for the new language."""
         t = TRANSLATIONS[lang]
         if hasattr(self, '_btn_gen'):
             gen_key = "btn_genera" if (self._editable or self._nomi_mode) else "preview_generate"
@@ -159,6 +166,7 @@ class _ExcelPreview(QWidget):
         self._btn_close.setText(t.get("preview_close", "Chiudi"))
 
     def _make_sheet_tab(self, t, headers, named_rows, total, sheet_name=""):
+        """Build one preview tab for a sheet's header and rows."""
         container = QWidget()
         lay = QVBoxLayout(container)
         lay.setContentsMargins(2, 4, 2, 2)
@@ -219,6 +227,7 @@ class _ExcelPreview(QWidget):
     # ── Theme ─────────────────────────────────────────────────────────────────
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the preview."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget          { background:#231811; color:white; }
@@ -268,6 +277,7 @@ class _CompletaDialog(QDialog):
     """Dialog for selecting PDF attachments before generating the complete documentation."""
 
     def __init__(self, parent, app_state, folder):
+        """Build the full-report (Completa) options dialog for the folder."""
         super().__init__(parent)
         self._app_state = app_state
         self._folder    = folder
@@ -278,6 +288,7 @@ class _CompletaDialog(QDialog):
         self._build_ui(t)
 
     def _build_ui(self, t):
+        """Build the dialog's widgets (section options, attachment list)."""
         from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel,
                                         QListWidget, QPushButton)
         root = QVBoxLayout(self)
@@ -315,6 +326,7 @@ class _CompletaDialog(QDialog):
         root.addLayout(action_row)
 
     def _add_attachment(self):
+        """Add a PDF attachment to the full report."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self._app_state.language]
         paths, _ = QFileDialog.getOpenFileNames(
@@ -326,6 +338,7 @@ class _CompletaDialog(QDialog):
                 self._list.addItem(os.path.basename(p))
 
     def _remove_attachment(self):
+        """Remove the selected attachment from the full report."""
         row = self._list.currentRow()
         if row >= 0:
             self._list.takeItem(row)
@@ -414,6 +427,7 @@ class _PdfLinkNavigator(QObject):
     _MARGIN = 6  # px gap between pages in MultiPage mode
 
     def __init__(self, view, doc, links):
+        """Initialise the PDF link navigator for clickable in-document links."""
         super().__init__(view)
         self._view = view
         self._doc = doc
@@ -421,6 +435,7 @@ class _PdfLinkNavigator(QObject):
         view.viewport().installEventFilter(self)
 
     def eventFilter(self, obj, event):
+        """Intercept mouse events on the PDF view to handle link clicks and hover cursor."""
         from PySide6.QtCore import QEvent
         t = event.type()
         if t == QEvent.Type.MouseButtonRelease:
@@ -431,11 +446,13 @@ class _PdfLinkNavigator(QObject):
         return False
 
     def _abs_pos(self, screen_pos):
+        """Convert a screen position to absolute coordinates within the PDF content."""
         v = self._view
         return (screen_pos.x() + v.horizontalScrollBar().value(),
                 screen_pos.y() + v.verticalScrollBar().value())
 
     def _hit_test(self, abs_x, abs_y):
+        """Return the page index and PDF-point coordinates at the given position."""
         doc = self._doc
         view = self._view
         zoom = view.zoomFactor()
@@ -464,6 +481,7 @@ class _PdfLinkNavigator(QObject):
         return None
 
     def _find_link(self, page_idx, x_pts, y_pts, tol=4.0):
+        """Return the link target at a PDF point within tolerance, if any."""
         for lp, x0, y0, x1, y1, target in self._links:
             if lp == page_idx:
                 if (x0 - tol) <= x_pts <= (x1 + tol) and (y0 - tol) <= y_pts <= (y1 + tol):
@@ -471,6 +489,7 @@ class _PdfLinkNavigator(QObject):
         return None
 
     def _handle_click(self, screen_pos):
+        """Navigate to the target page when a link is clicked."""
         abs_x, abs_y = self._abs_pos(screen_pos)
         result = self._hit_test(abs_x, abs_y)
         if result is None:
@@ -484,6 +503,7 @@ class _PdfLinkNavigator(QObject):
         return True
 
     def _update_cursor(self, screen_pos):
+        """Show a pointing-hand cursor when hovering over a link."""
         from PySide6.QtCore import Qt as _Qt
         abs_x, abs_y = self._abs_pos(screen_pos)
         result = self._hit_test(abs_x, abs_y)
@@ -498,6 +518,7 @@ class _PdfPreview(QWidget):
 
     def __init__(self, pdf_path, app_state, on_close_cb, on_save_cb=None, on_excel_cb=None,
                  nav_items=None, regen_fn=None):
+        """Build the PDF-preview widget for the given file."""
         super().__init__()
         self._pdf_path = pdf_path
         self._app_state = app_state
@@ -516,6 +537,7 @@ class _PdfPreview(QWidget):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the preview's widgets (viewer, navigation, zoom/export buttons)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -599,6 +621,7 @@ class _PdfPreview(QWidget):
             root.addWidget(self._make_viewer(t), 1)
 
     def _make_viewer(self, t):
+        """Build the PDF viewer widget."""
         try:
             from PySide6.QtPdfWidgets import QPdfView
             from PySide6.QtPdf import QPdfDocument
@@ -629,6 +652,7 @@ class _PdfPreview(QWidget):
             return self._fallback_widget(t)
 
     def _fallback_widget(self, t):
+        """Build a fallback widget shown when the PDF viewer is unavailable."""
         w = QWidget()
         lay = QVBoxLayout(w)
         lay.setAlignment(Qt.AlignCenter)
@@ -655,6 +679,7 @@ class _PdfPreview(QWidget):
     # ── Language update ───────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the PDF preview for the new language."""
         t = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
         if self._on_save is not None and hasattr(self, '_btn_save'):
             self._btn_save.setText(t.get("btn_generate_pdf", "Genera PDF"))
@@ -667,6 +692,7 @@ class _PdfPreview(QWidget):
         self._btn_close.setText(t.get("preview_close", "Chiudi"))
 
     def _zoom_in(self):
+        """Zoom the PDF preview in."""
         if self._pdf_view is not None:
             try:
                 self._zoom_level = min(getattr(self, '_zoom_level', 1.0) + 0.25, 4.0)
@@ -675,6 +701,7 @@ class _PdfPreview(QWidget):
                 pass
 
     def _zoom_out(self):
+        """Zoom the PDF preview out."""
         if self._pdf_view is not None:
             try:
                 self._zoom_level = max(getattr(self, '_zoom_level', 1.0) - 0.25, 0.25)
@@ -685,6 +712,7 @@ class _PdfPreview(QWidget):
     # ── Actions ───────────────────────────────────────────────────────────────
 
     def _on_nav_clicked(self, item):
+        """Scroll the preview to the section selected in the navigation list."""
         page_num = item.data(Qt.UserRole)
         if self._pdf_view is not None:
             try:
@@ -694,6 +722,7 @@ class _PdfPreview(QWidget):
                 pass
 
     def on_pdf_saved(self, folder_path):
+        """After the PDF is saved, offer to open the output folder."""
         self._saved_folder = folder_path
         self._btn_folder.setVisible(True)
         # Open the destination folder automatically every time a PDF is saved,
@@ -724,6 +753,7 @@ class _PdfPreview(QWidget):
             logger.error("log_error_generic", str(exc))
 
     def _open_folder(self):
+        """Open the output folder in the file explorer."""
         folder = self._saved_folder or os.path.dirname(os.path.abspath(self._pdf_path))
         try:
             os.startfile(folder)
@@ -731,6 +761,7 @@ class _PdfPreview(QWidget):
             logger.error("log_error_generic", str(exc))
 
     def _open_file(self):
+        """Open the generated PDF in the default viewer."""
         try:
             os.startfile(self._pdf_path)
         except Exception as exc:
@@ -739,6 +770,7 @@ class _PdfPreview(QWidget):
     # ── Theme ─────────────────────────────────────────────────────────────────
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the preview."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget          { background:#231811; color:white; }
@@ -766,6 +798,7 @@ class _BackupView(QWidget):
 
     def __init__(self, tab_data, folder_name, app_state,
                  on_close_cb, on_generate_excel_cb, on_export_pdf_cb):
+        """Build the variable-backup view for the given tabs."""
         super().__init__()
         self._tab_data = tab_data
         self._folder_name = folder_name
@@ -779,6 +812,7 @@ class _BackupView(QWidget):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the view's widgets (one tab per variable type, buttons)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -843,6 +877,7 @@ class _BackupView(QWidget):
         root.addWidget(self._lbl_footer)
 
     def _make_tab(self, t, rows):
+        """Build one variable-backup tab from its rows."""
         container = QWidget()
         lay = QVBoxLayout(container)
         lay.setContentsMargins(2, 4, 2, 2)
@@ -875,6 +910,7 @@ class _BackupView(QWidget):
     # ── Language update ───────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the variable-backup view for the new language."""
         t = TRANSLATIONS[lang]
         self._btn_excel.setText(t.get("btn_generate_excel", "Genera Excel"))
         self._btn_pdf.setText(t.get("btn_export_pdf", "Esporta PDF"))
@@ -890,6 +926,7 @@ class _BackupView(QWidget):
     # ── Theme ─────────────────────────────────────────────────────────────────
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget          { background:#231811; color:white; }
@@ -940,6 +977,7 @@ class _DriveView(QWidget):
 
     def __init__(self, file_name, info, params_by_cat, app_state,
                  on_close_cb, on_generate_excel_cb, on_export_pdf_cb):
+        """Build the GA500 drive view for the given project file."""
         super().__init__()
         self._file_name = file_name
         self._info = info
@@ -954,6 +992,7 @@ class _DriveView(QWidget):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the view's widgets (info tab plus one tab per parameter category)."""
         from docs.drive import _CAT_ORDER, _CATEGORIES
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
@@ -1012,6 +1051,7 @@ class _DriveView(QWidget):
         root.addWidget(self._lbl_footer)
 
     def _make_info_tab(self, t):
+        """Build the drive info tab."""
         container = QWidget()
         lay = QVBoxLayout(container)
         lay.setContentsMargins(4, 4, 4, 4)
@@ -1063,6 +1103,7 @@ class _DriveView(QWidget):
         return container
 
     def _make_cat_tab(self, t, rows):
+        """Build one parameter-category tab from its rows."""
         container = QWidget()
         lay = QVBoxLayout(container)
         lay.setContentsMargins(2, 4, 2, 2)
@@ -1104,6 +1145,7 @@ class _DriveView(QWidget):
     # ── Language update ───────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the drive view for the new language."""
         t = TRANSLATIONS[lang]
         self._btn_excel.setText(t.get("btn_generate_excel", "Genera Excel"))
         self._btn_pdf.setText(t.get("btn_export_pdf", "Esporta PDF"))
@@ -1125,6 +1167,7 @@ class _DriveView(QWidget):
     # ── Theme ─────────────────────────────────────────────────────────────────
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget          { background:#231811; color:white; }
@@ -1178,6 +1221,7 @@ class _IpNetView(QWidget):
     """In-window network configuration viewer (STEP 8)."""
 
     def __init__(self, rows, app_state, on_close_cb):
+        """Build the network-configuration view for the given rows."""
         super().__init__()
         self._app_state = app_state
         self._on_close = on_close_cb
@@ -1186,6 +1230,7 @@ class _IpNetView(QWidget):
         self._apply_theme()
 
     def _build_ui(self):
+        """Build the view's widgets (network table and buttons)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -1228,6 +1273,7 @@ class _IpNetView(QWidget):
             root.addWidget(QLabel(t.get("ipnet_no_data", "Nessun dato rete")))
 
     def update_language(self, lang):
+        """Re-translate the network view for the new language."""
         t = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
         self._lbl_title.setText(t.get("ipnet_view_title", "Configurazione Rete — YASKAWA YRC1000"))
         self._btn_close.setText(t.get("preview_close", "Chiudi"))
@@ -1239,6 +1285,7 @@ class _IpNetView(QWidget):
         self._tbl.setHorizontalHeaderItem(2, QTableWidgetItem(col_v))
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget { background:#231811; color:white; }
@@ -1276,12 +1323,14 @@ class _CompilaView(QWidget):
 
     @staticmethod
     def _get_appdata_path():
+        """Return the %APPDATA% path for the compile feature's saved values."""
         appdata = os.environ.get('APPDATA', os.path.expanduser('~'))
         d = os.path.join(appdata, 'YaskawaTools')
         os.makedirs(d, exist_ok=True)
         return os.path.join(d, 'compila_data.json')
 
     def __init__(self, folder, app_state, on_close_cb):
+        """Build the variable-compile view for the given folder."""
         super().__init__()
         self._folder = folder
         self._app_state = app_state
@@ -1294,6 +1343,7 @@ class _CompilaView(QWidget):
     # ── Parse robot folder ────────────────────────────────────────────────────
 
     def _load_folder(self):
+        """Load variable definitions, names, and current values from the folder."""
         import json
         # Load persisted values
         persisted = {}
@@ -1349,6 +1399,7 @@ class _CompilaView(QWidget):
 
     @staticmethod
     def _parse_var_counts(filepath):
+        """Parse the per-type variable counts from the config file."""
         counts = {}
         try:
             with open(filepath, 'r', encoding='latin-1', errors='replace') as f:
@@ -1371,6 +1422,7 @@ class _CompilaView(QWidget):
 
     @staticmethod
     def _parse_var_dat(filepath):
+        """Parse VAR.DAT into current variable values."""
         result = {}
         try:
             with open(filepath, 'r', encoding='latin-1', errors='replace') as f:
@@ -1393,6 +1445,7 @@ class _CompilaView(QWidget):
 
     @staticmethod
     def _parse_varname_dat(filepath, counts):
+        """Parse VARNAME.DAT into variable names keyed by id."""
         result = {}
         if not os.path.isfile(filepath):
             return result
@@ -1444,6 +1497,7 @@ class _CompilaView(QWidget):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the view's widgets (editable variable table, buttons)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -1520,6 +1574,7 @@ class _CompilaView(QWidget):
         root.addWidget(tabs, 1)
 
     def _collect_values(self):
+        """Collect the edited variable values from the table."""
         data = {}
         for tab_key, tbl in self._tables.items():
             for r in range(tbl.rowCount()):
@@ -1529,6 +1584,7 @@ class _CompilaView(QWidget):
         return data
 
     def _persist(self):
+        """Persist the edited variable values to disk."""
         import json
         try:
             with open(self._get_appdata_path(), 'w', encoding='utf-8') as f:
@@ -1537,6 +1593,7 @@ class _CompilaView(QWidget):
             pass
 
     def _on_clear(self):
+        """Clear all edited variable values."""
         for tab_key, tbl in self._tables.items():
             ro_tab = tab_key in ('IN', 'EXIN')
             for r in range(tbl.rowCount()):
@@ -1547,6 +1604,7 @@ class _CompilaView(QWidget):
         logger.info("log_compila_cleared")
 
     def _on_write(self):
+        """Write the edited values into VAR.DAT for the controller."""
         self._persist()
         var_path = os.path.join(self._folder, 'VAR.DAT')
         if not os.path.isfile(var_path):
@@ -1615,6 +1673,7 @@ class _CompilaView(QWidget):
             return False, str(exc)
 
     def update_language(self, lang):
+        """Re-translate the compile view for the new language."""
         t = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
         self._lbl_title.setText(t.get("compila_view_title", "Compila — YASKAWA"))
         self._btn_clear.setText(t.get("compila_btn_pulisci", "Pulisci"))
@@ -1630,6 +1689,7 @@ class _CompilaView(QWidget):
             tbl.setHorizontalHeaderLabels(headers)
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget { background:#231811; color:white; }
@@ -1670,6 +1730,7 @@ class _GA500ParamsView(QWidget):
     """In-window GA500 parameter reference: code+name table, printable to PDF."""
 
     def __init__(self, app_state, on_close_cb):
+        """Build the GA500 parameters reference view."""
         super().__init__()
         self._app_state = app_state
         self._on_close = on_close_cb
@@ -1677,6 +1738,7 @@ class _GA500ParamsView(QWidget):
         self._apply_theme()
 
     def _build_ui(self):
+        """Build the view's widgets (parameter table and export button)."""
         from docs.ga500_params import GA500_PARAMS
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
@@ -1735,6 +1797,7 @@ class _GA500ParamsView(QWidget):
         root.addWidget(self._lbl_footer)
 
     def _on_generate_pdf(self):
+        """Generate the GA500 parameter PDF and save it to a chosen path."""
         import tempfile, shutil
         from PySide6.QtWidgets import QFileDialog
         from docs.ga500_params import GA500_PARAMS
@@ -1775,6 +1838,7 @@ class _GA500ParamsView(QWidget):
 
     @staticmethod
     def _generate_ga500_pdf(params, output_path, t, lang='EN'):
+        """Render the GA500 parameter list to a PDF (static helper)."""
         try:
             from reportlab.platypus import (SimpleDocTemplate, Table, TableStyle,
                                              Paragraph, Spacer, PageBreak, Flowable)
@@ -1815,6 +1879,7 @@ class _GA500ParamsView(QWidget):
         tracker = {'page': 0}
 
         def draw_page(canvas, doc):
+            """ReportLab page callback: draw the header and the page number."""
             from docs.pdf_header import draw_page_header
             draw_page_header(canvas, doc)
             canvas.saveState()
@@ -1825,6 +1890,7 @@ class _GA500ParamsView(QWidget):
             canvas.restoreState()
 
         def row_style(n):
+            """Build the table style for n parameter rows."""
             ts = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), accent),
                 ('TEXTCOLOR',  (0, 0), (-1, 0), HexColor('#000000')),
@@ -1883,6 +1949,7 @@ class _GA500ParamsView(QWidget):
             return False
 
     def update_language(self, lang):
+        """Re-translate the GA500 parameters view for the new language."""
         t = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
         self._lbl_title.setText(t.get("ga500_view_title", "GA500 Parameters — YASKAWA"))
         self._btn_pdf.setText(t.get("btn_generate_pdf", "Genera PDF"))
@@ -1899,6 +1966,7 @@ class _GA500ParamsView(QWidget):
                 item.setText(_gpn(code, lang))
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget          { background:#231811; color:white; }
@@ -1938,6 +2006,7 @@ class _GA500ParamsView(QWidget):
 
 class AboutDialog(QDialog):
     def __init__(self, parent=None, is_dark_mode=False, app_state=None):
+        """Build the About dialog (app info, paths, and creator section)."""
         super().__init__(parent)
         self.app_state = app_state
         t = TRANSLATIONS[self.app_state.language]
@@ -2020,6 +2089,7 @@ class AboutDialog(QDialog):
             self.setStyleSheet("QDialog { background-color: white; color: black; } QGroupBox { color: black; border: 1px solid #ccc; margin-top: 10px; font-weight: bold; } QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 3px 0 3px; } QLabel { color: black; font-weight: normal; }")
 
     def closeEvent(self, event):
+        """Log and handle the About dialog close event."""
         logger.info("log_about_closed")
         super().closeEvent(event)
 
@@ -2269,6 +2339,7 @@ class _AiutoView(QWidget):
     """Inline help guide panel shown in the content area."""
 
     def __init__(self, app_state, on_close_cb):
+        """Build the in-app help/guide view."""
         super().__init__()
         self._app_state = app_state
         self._on_close  = on_close_cb
@@ -2276,6 +2347,7 @@ class _AiutoView(QWidget):
         self._apply_theme()
 
     def _build_ui(self):
+        """Build the view's widgets (rich-text help content and close button)."""
         from PySide6.QtWidgets import QScrollArea, QTextBrowser
         t    = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
@@ -2306,6 +2378,7 @@ class _AiutoView(QWidget):
         root.addWidget(self._text, 1)
 
     def update_language(self, lang):
+        """Re-translate the help view for the new language."""
         try:
             t = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
             self._lbl.setText(t.get("menu_aiuto", "Aiuto"))
@@ -2316,6 +2389,7 @@ class _AiutoView(QWidget):
             pass
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget { background:#231811; color:white; }
@@ -2340,6 +2414,7 @@ class _AiutoView(QWidget):
 
 class MainWindow(QMainWindow):
     def __init__(self, app_state):
+        """Initialise the main window and its application state."""
         super().__init__()
         self.app_state = app_state
 
@@ -2371,6 +2446,7 @@ class MainWindow(QMainWindow):
 
     def setup_ui(self):
         # Central widget
+        """Build the main window: top bar, side menu, work area, and log panel."""
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         
@@ -2662,6 +2738,7 @@ class MainWindow(QMainWindow):
             lang = getattr(self.app_state, "language", "IT")
 
             def _tip_for(name: str, fallback: str = "") -> str:
+                """Return the tooltip text for a control, with a fallback."""
                 if _tips is not None:
                     txt = _tips.get(name, lang)
                     if txt:
@@ -2725,20 +2802,24 @@ class MainWindow(QMainWindow):
     # ── Progress bar helpers ──────────────────────────────────────────────────
 
     def _progress_begin(self):
+        """Show and reset the progress bar."""
         self._progress_bar.setValue(0)
         self._progress_bar.show()
         QApplication.processEvents()
 
     def _progress_update(self, value):
+        """Set the progress bar to the given value."""
         self._progress_bar.setValue(int(value))
         QApplication.processEvents()
 
     def _progress_end(self):
+        """Hide the progress bar."""
         self._progress_bar.setValue(100)
         QApplication.processEvents()
         self._progress_bar.hide()
 
     def load_logs(self):
+        """Load existing log entries into the log panel."""
         if os.path.exists(logger.LOG_FILE):
             with open(logger.LOG_FILE, "r", encoding="utf-8") as f:
                 self.log_text.setPlainText(f.read())
@@ -2747,17 +2828,20 @@ class MainWindow(QMainWindow):
             scrollbar.setValue(scrollbar.maximum())
 
     def append_log(self, text):
+        """Append a log line to the log panel."""
         self.log_text.moveCursor(QTextCursor.End)
         self.log_text.insertPlainText(text)
         self.log_text.verticalScrollBar().setValue(self.log_text.verticalScrollBar().maximum())
 
     def toggle_logs(self, checked):
+        """Show or hide the collapsible log panel."""
         self.log_panel.setVisible(checked)
         t = TRANSLATIONS[self.app_state.language]
         status = t["log_visible"] if checked else t["log_hidden"]
         logger.info("log_log_toggled", status)
 
     def apply_theme(self):
+        """Apply the current light/dark theme to the main window."""
         if self.app_state.is_dark_mode:
             self.setStyleSheet("QMainWindow { background-color: #231811; } QMenuBar { background-color: #3A2D26; color: white; } QMenu { background-color: #3A2D26; color: white; }")
             self.content_area.setStyleSheet("background-color: #231811;")
@@ -2776,6 +2860,7 @@ class MainWindow(QMainWindow):
                 self._welcome_lbl.setStyleSheet("font-size: 13pt; color: #555555; padding: 40px;")
 
     def on_theme_toggled(self, is_dark):
+        """Handle the theme toggle: restyle the window and open views."""
         self.apply_theme()
         for panel in [self._pdf_preview, self._excel_preview, self._backup_view,
                       self._drive_view, self._ga500_view, self._uf_tools_view,
@@ -2792,6 +2877,7 @@ class MainWindow(QMainWindow):
         logger.info("log_theme_changed", theme_name)
 
     def on_language_changed(self, lang):
+        """Handle a language change: re-translate the window and all open views."""
         if lang not in TRANSLATIONS:
             return
         t = TRANSLATIONS[lang]
@@ -2892,6 +2978,7 @@ class MainWindow(QMainWindow):
         self._apply_tooltips()
 
     def on_flowchart(self):
+        """Open the JBI flowchart view for the current folder."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS.get(self.app_state.language, TRANSLATIONS["IT"])
         folder = self._work_folder or QFileDialog.getExistingDirectory(
@@ -2915,6 +3002,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def on_targhetta(self):
+        """Generate the nameplate (targhetta) PDF and show its preview."""
         import shutil
         import tempfile
         from PySide6.QtWidgets import QFileDialog
@@ -2948,6 +3036,7 @@ class MainWindow(QMainWindow):
         self._progress_end()
 
         def _save():
+            """Save the generated nameplate PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -2964,12 +3053,14 @@ class MainWindow(QMainWindow):
                 logger.error("log_error_generic", str(exc))
 
         def _regen():
+            """Regenerate the nameplate preview for the current language."""
             from docs.targhetta import generate_pdf as _gp
             _gp(folder, tmp_path, lang=self.app_state.language)
 
         self._show_pdf_preview(tmp_path, on_save_cb=_save, regen_fn=_regen)
 
     def on_panel(self):
+        """Generate the operator-panel PDF and show its preview."""
         import shutil
         import tempfile
         from PySide6.QtWidgets import QFileDialog
@@ -3003,6 +3094,7 @@ class MainWindow(QMainWindow):
         self._progress_end()
 
         def _save():
+            """Save the generated panel PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -3019,16 +3111,19 @@ class MainWindow(QMainWindow):
                 logger.error("log_error_generic", str(exc))
 
         def _regen():
+            """Regenerate the panel preview for the current language."""
             from docs.panel import generate_pdf as _gp
             _gp(folder, tmp_path, lang=self.app_state.language)
 
         self._show_pdf_preview(tmp_path, on_save_cb=_save, regen_fn=_regen)
 
     def _on_compila_genera(self):
+        """Handle the compile-feature generate action."""
         t = TRANSLATIONS[self.app_state.language]
         logger.info("log_btn_pressed", t.get("btn_genera", "Genera"))
 
     def on_completa(self):
+        """Generate the full documentation PDF and show its preview."""
         import shutil
         import tempfile
         from PySide6.QtWidgets import QFileDialog
@@ -3068,6 +3163,7 @@ class MainWindow(QMainWindow):
         self._progress_end()
 
         def _save():
+            """Save the full-report PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -3084,6 +3180,7 @@ class MainWindow(QMainWindow):
                 logger.error("log_error_generic", str(exc))
 
         def _regen():
+            """Regenerate the full report for the current language."""
             from docs.completa import generate_completa as _gc
             _gc(folder, tmp_path, attachments=attachments,
                 lang=self.app_state.language, log_fn=logger.info,
@@ -3092,6 +3189,7 @@ class MainWindow(QMainWindow):
         self._show_pdf_preview(tmp_path, on_save_cb=_save, regen_fn=_regen)
 
     def on_template(self):
+        """Generate the Excel name/template workbook and show its preview."""
         import shutil
         import tempfile
         from PySide6.QtWidgets import QFileDialog
@@ -3201,6 +3299,7 @@ class MainWindow(QMainWindow):
         return sheets_data, True
 
     def _show_preview(self, excel_path, sheets_data):
+        """Show the Excel preview for the generated template."""
         self._close_all_panels()
         self._hide_welcome()
         preview = _ExcelPreview(
@@ -3212,6 +3311,7 @@ class MainWindow(QMainWindow):
         self.content_area.layout().addWidget(preview)
 
     def _close_preview(self):
+        """Close the Excel preview."""
         if self._excel_preview is not None:
             self._excel_preview.setParent(None)
             self._excel_preview.deleteLater()
@@ -3219,6 +3319,7 @@ class MainWindow(QMainWindow):
             logger.info("log_preview_closed")
 
     def _run_dat_generation(self, excel_path):
+        """Generate the controller .DAT files from the edited Excel."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
         out_folder = QFileDialog.getExistingDirectory(
@@ -3241,6 +3342,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def on_nomi(self):
+        """Import names from Excel and generate the controller DAT files."""
         import tempfile
         from PySide6.QtWidgets import QFileDialog
 
@@ -3285,6 +3387,7 @@ class MainWindow(QMainWindow):
         logger.info("log_preview_opened", os.path.basename(tmp_path))
 
     def _run_nomi_generation(self, tmp_path):
+        """Run the name-file generation from the given Excel path."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
         try:
@@ -3305,6 +3408,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def _close_tool_panel(self):
+        """Close the tool panel and return to the welcome screen."""
         if self._tool_panel is not None:
             self._tool_panel.save_state()
             self._tool_panel.setParent(None)
@@ -3313,6 +3417,7 @@ class MainWindow(QMainWindow):
             logger.info("log_tool_closed")
 
     def _close_help_view(self):
+        """Close the help view and return to the welcome screen."""
         if self._help_view is not None:
             self._help_view.setParent(None)
             self._help_view.deleteLater()
@@ -3320,6 +3425,7 @@ class MainWindow(QMainWindow):
             logger.info("log_help_closed")
 
     def _close_uf_tools_view(self):
+        """Close the tool/user-frame view and return to the welcome screen."""
         if self._uf_tools_view is not None:
             self._uf_tools_view.setParent(None)
             self._uf_tools_view.deleteLater()
@@ -3327,6 +3433,7 @@ class MainWindow(QMainWindow):
             logger.info("log_uf_tools_closed")
 
     def _close_backup_view(self):
+        """Close the variable-backup view and return to the welcome screen."""
         if self._backup_view is not None:
             self._backup_view.setParent(None)
             self._backup_view.deleteLater()
@@ -3334,6 +3441,7 @@ class MainWindow(QMainWindow):
             logger.info("log_backup_closed")
 
     def _close_drive_view(self):
+        """Close the drive view and return to the welcome screen."""
         if self._drive_view is not None:
             self._drive_view.setParent(None)
             self._drive_view.deleteLater()
@@ -3341,6 +3449,7 @@ class MainWindow(QMainWindow):
             logger.info("log_drive_closed")
 
     def _close_ga500_view(self):
+        """Close the GA500 parameters view and return to the welcome screen."""
         if self._ga500_view is not None:
             self._ga500_view.setParent(None)
             self._ga500_view.deleteLater()
@@ -3348,6 +3457,7 @@ class MainWindow(QMainWindow):
             logger.info("log_ga500_closed")
 
     def _close_ipnet_view(self):
+        """Close the network view and return to the welcome screen."""
         if self._ipnet_view is not None:
             self._ipnet_view.setParent(None)
             self._ipnet_view.deleteLater()
@@ -3355,6 +3465,7 @@ class MainWindow(QMainWindow):
             logger.info("log_ipnet_closed")
 
     def _close_uframe_view(self):
+        """Close the user-frame view and return to the welcome screen."""
         if self._uframe_view is not None:
             self._uframe_view.setParent(None)
             self._uframe_view.deleteLater()
@@ -3362,12 +3473,14 @@ class MainWindow(QMainWindow):
             logger.info("log_uframe_closed")
 
     def _close_aiuto_view(self):
+        """Close the help/guide view and return to the welcome screen."""
         if self._aiuto_view is not None:
             self._aiuto_view.setParent(None)
             self._aiuto_view.deleteLater()
             self._aiuto_view = None
 
     def _close_ifpanel_view(self):
+        """Close the IF-panel view and return to the welcome screen."""
         if self._ifpanel_view is not None:
             self._ifpanel_view.setParent(None)
             self._ifpanel_view.deleteLater()
@@ -3375,12 +3488,14 @@ class MainWindow(QMainWindow):
             logger.info("log_ifpanel_closed")
 
     def _close_flowchart_view(self):
+        """Close the flowchart view and return to the welcome screen."""
         if self._flowchart_view is not None:
             self._flowchart_view.setParent(None)
             self._flowchart_view.deleteLater()
             self._flowchart_view = None
 
     def _close_usrgrp_view(self):
+        """Close the user-group view and return to the welcome screen."""
         if self._usrgrp_view is not None:
             self._usrgrp_view.setParent(None)
             self._usrgrp_view.deleteLater()
@@ -3388,20 +3503,24 @@ class MainWindow(QMainWindow):
             logger.info("log_usrgrp_closed")
 
     def _close_compila_view(self):
+        """Close the compile view and return to the welcome screen."""
         if self._compila_view is not None:
             self._compila_view.setParent(None)
             self._compila_view.deleteLater()
             self._compila_view = None
 
     def _show_welcome(self):
+        """Show the welcome screen in the work area."""
         if self._welcome_lbl is not None:
             self._welcome_lbl.setVisible(True)
 
     def _hide_welcome(self):
+        """Hide the welcome screen."""
         if self._welcome_lbl is not None:
             self._welcome_lbl.setVisible(False)
 
     def _close_pdf_preview(self):
+        """Close the PDF preview and return to the welcome screen."""
         if self._pdf_preview is not None:
             self._pdf_preview.setParent(None)
             self._pdf_preview.deleteLater()
@@ -3410,6 +3529,7 @@ class MainWindow(QMainWindow):
 
     def _show_pdf_preview(self, pdf_path, on_save_cb=None, on_excel_cb=None,
                           nav_items=None, regen_fn=None):
+        """Show the PDF preview for the given file with optional save/export callbacks."""
         self._close_all_panels()
         self._hide_welcome()
         # Show the progress bar for EVERY preview (uniform with "Completa").
@@ -3436,6 +3556,7 @@ class MainWindow(QMainWindow):
             self._progress_end()
 
     def _show_template_excel_preview(self, excel_path, sheets_data):
+        """Show the Excel preview for the generated template."""
         self._close_all_panels()
         self._hide_welcome()
         try:
@@ -3451,6 +3572,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def _show_compila_preview(self, excel_path, sheets_data):
+        """Show the Excel preview for the compile feature."""
         t = TRANSLATIONS[self.app_state.language]
         valore_label = t.get("backup_col_value", "Valore")
         mapped_data = [
@@ -3524,6 +3646,7 @@ class MainWindow(QMainWindow):
         self._show_welcome()
 
     def on_tool(self):
+        """Open the tool-configuration panel."""
         self._close_all_panels()
         self._hide_welcome()
         from gui.tool_panel import ToolPanel
@@ -3536,6 +3659,7 @@ class MainWindow(QMainWindow):
         logger.info("log_tool_opened")
 
     def on_uf(self):
+        """Open the user-frame editor."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
         folder = self._work_folder or QFileDialog.getExistingDirectory(
@@ -3561,6 +3685,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def on_ifpanel(self):
+        """Open the IF-panel editor."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
         folder = self._work_folder or QFileDialog.getExistingDirectory(
@@ -3586,6 +3711,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def on_aiuto(self):
+        """Open the in-app help/guide view."""
         self._close_all_panels()
         self._hide_welcome()
         logger.info("log_aiuto_opened")
@@ -3597,6 +3723,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def on_usrgrp(self):
+        """Open the user-group view."""
         import tempfile
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
@@ -3673,6 +3800,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def _on_uf_tools_generate(self, folder):
+        """Generate the tool/user-frame PDF and show its preview."""
         import shutil
         import tempfile
         from PySide6.QtWidgets import QFileDialog
@@ -3694,6 +3822,7 @@ class MainWindow(QMainWindow):
         self._progress_end()
 
         def _save():
+            """Save the generated tool/user-frame PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -3713,6 +3842,7 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(0, lambda: self._show_pdf_preview(tmp_path, on_save_cb=_save))
 
     def on_help_params(self):
+        """Open the parameter help guide."""
         self._close_all_panels()
         self._hide_welcome()
         try:
@@ -3725,6 +3855,7 @@ class MainWindow(QMainWindow):
             logger.warning("log_error_generic", str(exc))
 
     def on_help_known(self):
+        """Open the known-parameters help guide."""
         self._close_all_panels()
         self._hide_welcome()
         try:
@@ -3737,6 +3868,7 @@ class MainWindow(QMainWindow):
             logger.warning("log_error_generic", str(exc))
 
     def on_jobs(self):
+        """Generate the jobs/INFORM PDF and show its preview."""
         import shutil
         import tempfile
         from PySide6.QtWidgets import QFileDialog
@@ -3767,6 +3899,7 @@ class MainWindow(QMainWindow):
         self._progress_end()
 
         def _save():
+            """Save the generated jobs PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -3783,6 +3916,7 @@ class MainWindow(QMainWindow):
                 logger.error("log_error_generic", str(exc))
 
         def _regen():
+            """Regenerate the jobs preview for the current language."""
             from docs.jobs import generate_pdf as _gp
             return _gp(folder, tmp_path, log_fn=None, lang=self.app_state.language)
 
@@ -3790,6 +3924,7 @@ class MainWindow(QMainWindow):
                                regen_fn=_regen)
 
     def on_params(self):
+        """Generate the parameters PDF and show its preview."""
         import shutil
         import tempfile
         from PySide6.QtWidgets import QFileDialog
@@ -3819,6 +3954,7 @@ class MainWindow(QMainWindow):
         self._progress_end()
 
         def _save():
+            """Save the generated parameters PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -3835,16 +3971,19 @@ class MainWindow(QMainWindow):
                 logger.error("log_error_generic", str(exc))
 
         def _regen():
+            """Regenerate the parameters preview for the current language."""
             from docs.params import generate_pdf as _gp
             _gp(folder, tmp_path, log_fn=None, lang=self.app_state.language)
 
         def _excel():
+            """Export the parameters to an Excel file."""
             self._on_params_excel(folder)
 
         self._show_pdf_preview(tmp_path, on_save_cb=_save, on_excel_cb=_excel,
                                regen_fn=_regen)
 
     def _on_params_excel(self, folder):
+        """Export the parameters to an Excel file in a chosen folder."""
         import tempfile
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
@@ -3865,6 +4004,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def on_uf_tools(self):
+        """Open the tool/user-frame view."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
         folder = self._work_folder or QFileDialog.getExistingDirectory(
@@ -3891,6 +4031,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def _on_uf_tools_excel(self, folder):
+        """Export the tool/user-frame data to an Excel file."""
         import tempfile
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
@@ -3918,6 +4059,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def on_backup_var(self):
+        """Open the variable-backup view from VAR.DAT."""
         from PySide6.QtWidgets import QFileDialog
 
         t = TRANSLATIONS[self.app_state.language]
@@ -3976,6 +4118,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def _on_backup_generate_excel(self, tab_data, template_path, sections, folder_name):
+        """Generate the variable-backup Excel workbook from the template."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
 
@@ -4009,6 +4152,7 @@ class MainWindow(QMainWindow):
             logger.warning("log_error_generic", str(exc))
 
     def _on_backup_export_pdf(self, tab_data, folder_name):
+        """Export the variable-backup data to a PDF."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
 
@@ -4046,6 +4190,7 @@ class MainWindow(QMainWindow):
             logger.warning("log_error_generic", str(exc))
 
     def on_backup_punti(self):
+        """Generate the robot-points PDF and show its preview."""
         import shutil
         import tempfile
         from PySide6.QtWidgets import QFileDialog
@@ -4123,6 +4268,7 @@ class MainWindow(QMainWindow):
             return
 
         def _save():
+            """Save the generated points PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -4141,6 +4287,7 @@ class MainWindow(QMainWindow):
         self._show_pdf_preview(tmp_path, on_save_cb=_save)
 
     def on_ga500_params(self):
+        """Open the GA500 parameters reference view."""
         self._close_all_panels()
         self._hide_welcome()
         try:
@@ -4152,6 +4299,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def on_motion_drive(self):
+        """Open the GA500 drive view for a selected DriveWizard project."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
 
@@ -4193,6 +4341,7 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def _on_drive_excel(self, info, params_by_cat, file_name):
+        """Export the drive parameters to an Excel file."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
 
@@ -4234,6 +4383,7 @@ class MainWindow(QMainWindow):
             logger.warning("log_error_generic", str(exc))
 
     def _on_drive_pdf(self, info, params_by_cat, file_name):
+        """Export the drive parameters to a PDF."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
 
@@ -4280,12 +4430,14 @@ class MainWindow(QMainWindow):
 
     @staticmethod
     def _config_path():
+        """Return the path to the app's work-folder config file."""
         appdata = os.environ.get('APPDATA', os.path.expanduser('~'))
         d = os.path.join(appdata, 'YaskawaTools')
         os.makedirs(d, exist_ok=True)
         return os.path.join(d, 'config.json')
 
     def _load_work_folder(self):
+        """Load the saved work folder from config."""
         try:
             import json, pathlib
             with open(self._config_path(), 'r', encoding='utf-8') as f:
@@ -4298,6 +4450,7 @@ class MainWindow(QMainWindow):
             return ''
 
     def _save_work_folder(self, folder):
+        """Persist the chosen work folder to config."""
         try:
             import json
             with open(self._config_path(), 'w', encoding='utf-8') as f:
@@ -4306,6 +4459,7 @@ class MainWindow(QMainWindow):
             pass
 
     def _on_choose_work_folder(self):
+        """Prompt the user to choose the work folder and persist it."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
         folder = QFileDialog.getExistingDirectory(
@@ -4321,6 +4475,7 @@ class MainWindow(QMainWindow):
     # ── IP Net view (STEP 8) ──────────────────────────────────────────────────
 
     def on_ipnet(self):
+        """Generate the network-configuration PDF and show its preview."""
         import tempfile
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
@@ -4359,6 +4514,7 @@ class MainWindow(QMainWindow):
         import shutil
 
         def _save():
+            """Save the generated network PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t.get("dialog_save_pdf", "Salva PDF"),
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -4375,6 +4531,7 @@ class MainWindow(QMainWindow):
                 logger.error("log_error_generic", str(exc))
 
         def _excel():
+            """Export the network configuration to an Excel file."""
             xl_name = f"IPNet_{folder_name}.xlsx"
             sp, _ = QFileDialog.getSaveFileName(
                 self, t.get("dialog_save_excel", "Salva Excel"),
@@ -4400,6 +4557,7 @@ class MainWindow(QMainWindow):
     # ── LogData (STEP 10) ─────────────────────────────────────────────────────
 
     def on_logdata(self):
+        """Import and document LOGDATA.DAT, then show its preview."""
         import shutil
         import tempfile
         from PySide6.QtWidgets import QFileDialog
@@ -4446,6 +4604,7 @@ class MainWindow(QMainWindow):
             return
 
         def _save():
+            """Save the generated log-data PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -4466,6 +4625,7 @@ class MainWindow(QMainWindow):
     # ── Cubo interferenza (CUBEINTF.CND) ──────────────────────────────────────
 
     def on_cubeintf(self):
+        """Generate the interference-cubes PDF and show its preview."""
         import shutil
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
@@ -4503,6 +4663,7 @@ class MainWindow(QMainWindow):
         logger.info("log_cubeintf_opened", len(cubes))
 
         def _save():
+            """Save the generated interference-cubes PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -4519,6 +4680,7 @@ class MainWindow(QMainWindow):
                 logger.error("log_error_generic", str(exc))
 
         def _regen():
+            """Regenerate the interference-cubes preview for the current language."""
             from docs.cubeintf import generate_pdf as _cg
             return _cg(folder, tmp_path,
                        lang=self.app_state.language, log_fn=logger.info)
@@ -4528,6 +4690,7 @@ class MainWindow(QMainWindow):
     # ── FormCut (FORMCUT.CND) ─────────────────────────────────────────────────
 
     def on_formcut(self):
+        """Generate the form-cutting PDF and show its preview."""
         import shutil
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
@@ -4565,6 +4728,7 @@ class MainWindow(QMainWindow):
         logger.info("log_formcut_opened", len(formcuts))
 
         def _save():
+            """Save the generated form-cutting PDF to a chosen folder."""
             sp, _ = QFileDialog.getSaveFileName(
                 self, t["dialog_save_pdf"],
                 os.path.join(os.path.expanduser("~"), "Desktop", default_name),
@@ -4581,6 +4745,7 @@ class MainWindow(QMainWindow):
                 logger.error("log_error_generic", str(exc))
 
         def _regen():
+            """Regenerate the form-cutting preview for the current language."""
             from docs.formcut import generate_pdf as _fg
             return _fg(folder, tmp_path,
                        lang=self.app_state.language, log_fn=logger.info)
@@ -4590,6 +4755,7 @@ class MainWindow(QMainWindow):
     # ── Compila (STEP 5+6) ────────────────────────────────────────────────────
 
     def on_compila(self):
+        """Open the variable-compile view."""
         from PySide6.QtWidgets import QFileDialog
         t = TRANSLATIONS[self.app_state.language]
         folder = self._work_folder or QFileDialog.getExistingDirectory(
@@ -4615,10 +4781,12 @@ class MainWindow(QMainWindow):
             logger.error("log_error_generic", str(exc))
 
     def show_about(self):
+        """Show the About dialog."""
         logger.info("log_about_opened")
         dialog = AboutDialog(self, self.app_state.is_dark_mode, self.app_state)
         dialog.exec()
 
     def closeEvent(self, event):
+        """Handle application close: persist state and exit."""
         super().closeEvent(event)
 
