@@ -3,7 +3,12 @@ name: Build
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   workflow_dispatch:
+
+# Allow the release job to create/update GitHub Releases with the built binaries.
+permissions:
+  contents: write
 
 jobs:
 
@@ -95,3 +100,27 @@ jobs:
         with:
           name: YaskawaTools-macOS
           path: dist/YaskawaTools.dmg
+
+  # ── Publish to GitHub Releases ────────────────────────────────────────────────
+  # Runs only when a version tag (v*) is pushed. Collects the three platform
+  # binaries built above and attaches them to the Release for that tag.
+  release:
+    name: Publish Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [ build-windows, build-linux, build-macos ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish binaries to the Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/YaskawaTools-Windows/YaskawaTools.exe
+            artifacts/YaskawaTools-Linux/YaskawaTools
+            artifacts/YaskawaTools-macOS/YaskawaTools.dmg
+          generate_release_notes: true
+          fail_on_unmatched_files: true
