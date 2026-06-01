@@ -20,6 +20,7 @@ class HelpView(QWidget):
     _MONO = QFont("Courier New", 9)
 
     def __init__(self, app_state, view_type, on_close_cb, parent=None):
+        """Build the help view for the given parameter-guide type."""
         super().__init__(parent)
         self._app_state  = app_state
         self._view_type  = view_type   # "params" | "known"
@@ -30,6 +31,7 @@ class HelpView(QWidget):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the help view's widgets (search box, table, close button)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -92,6 +94,7 @@ class HelpView(QWidget):
         self._populate_table(self._app_state.language)
 
     def _populate_table(self, lang):
+        """Fill the help table with the parameter entries for the given language."""
         if self._view_type == "params":
             data = get_params(lang)
         else:
@@ -108,6 +111,7 @@ class HelpView(QWidget):
                 self._table.setItem(ri, ci, item)
 
     def showEvent(self, event):
+        """On show, populate the table for the current language."""
         super().showEvent(event)
         try:
             self._table.resizeRowsToContents()
@@ -117,11 +121,13 @@ class HelpView(QWidget):
     # ── Close ─────────────────────────────────────────────────────────────────
 
     def _handle_close(self):
+        """Invoke the close callback to dismiss the help view."""
         self._on_close()
 
     # ── Language update ───────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the help view and repopulate it for the new language."""
         try:
             t = TRANSLATIONS[lang]
             if self._view_type == "params":
@@ -153,6 +159,7 @@ class HelpView(QWidget):
     # ── Theme ─────────────────────────────────────────────────────────────────
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the help view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget          { background:#231811; color:white; }

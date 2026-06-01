@@ -19,10 +19,12 @@ _RE_NUM  = re.compile(r'^-?[0-9]*[.,]?[0-9]*$')
 class _NameDelegate(QStyledItemDelegate):
     """Max 16 chars, only [A-Za-z0-9 ,_-]. Logs warning on invalid input."""
     def __init__(self, app_state, parent=None):
+        """Initialise the cell delegate with the shared application state."""
         super().__init__(parent)
         self._app_state = app_state
 
     def createEditor(self, parent, option, index):
+        """Create the editor widget for a user-frame value cell."""
         ed = QLineEdit(parent)
         ed.setMaxLength(16)
         rx = QRegularExpression(r'[A-Za-z0-9 ,_\-]*')
@@ -34,10 +36,12 @@ class _NameDelegate(QStyledItemDelegate):
         return ed
 
     def setEditorData(self, editor, index):
+        """Load the cell's current value into the editor."""
         self._prev = index.data() or ""
         editor.setText(self._prev)
 
     def setModelData(self, editor, model, index):
+        """Validate and write the editor's value back into the model."""
         text = editor.text()
         if len(text) > 16:
             text = text[:16]
@@ -54,11 +58,13 @@ class _NameDelegate(QStyledItemDelegate):
 class _NumericDelegate(QStyledItemDelegate):
     """Only digits + optional comma or period (real). Logs warning on invalid."""
     def __init__(self, app_state, col_name="", parent=None):
+        """Initialise the name-column delegate."""
         super().__init__(parent)
         self._app_state = app_state
         self._col_name  = col_name
 
     def createEditor(self, parent, option, index):
+        """Create the editor widget for a name cell."""
         ed = QLineEdit(parent)
         rx = QRegularExpression(r'-?[0-9]*[.,]?[0-9]*')
         val = QRegularExpressionValidator(rx, ed)
@@ -69,10 +75,12 @@ class _NumericDelegate(QStyledItemDelegate):
         return ed
 
     def setEditorData(self, editor, index):
+        """Load the cell's current value into the editor."""
         self._prev = index.data() or ""
         editor.setText(self._prev)
 
     def setModelData(self, editor, model, index):
+        """Validate and write the editor's value back into the model."""
         text = editor.text().replace(',', '.')
         if not _RE_NUM.match(editor.text()):
             logger.warning("log_invalid_input", editor.text())
@@ -92,6 +100,7 @@ class UFrameView(QWidget):
     """Editable table for UFRAME.CND: UF# | Name | X | Y | Z | Rx | Ry | Rz."""
 
     def __init__(self, folder, app_state, on_close_cb):
+        """Build the user-frame editing view for the given folder."""
         super().__init__()
         self._folder = folder
         self._app_state = app_state
@@ -103,6 +112,7 @@ class UFrameView(QWidget):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the view's widgets (editable table, save/close buttons)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -133,6 +143,7 @@ class UFrameView(QWidget):
         root.addWidget(self._tbl, 1)
 
     def _build_table(self, t):
+        """Populate the user-frame table with rows and editing delegates."""
         name_hdr = t.get("tool_col_name", "Nome")
         col_names = ["X [mm]", "Y [mm]", "Z [mm]", "Rx [°]", "Ry [°]", "Rz [°]"]
         coord_keys = ['x', 'y', 'z', 'rx', 'ry', 'rz']
@@ -195,6 +206,7 @@ class UFrameView(QWidget):
     # ── Save ──────────────────────────────────────────────────────────────────
 
     def _on_save(self):
+        """Validate the edited frames and write them back to the controller file."""
         from docs.uf_tools import write_uframe_cnd, UFRAME_FILE
         uf_path = os.path.join(self._folder, UFRAME_FILE)
         frames_by_num = {}
@@ -229,6 +241,7 @@ class UFrameView(QWidget):
     # ── Language / theme ──────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the user-frame view for the new language."""
         try:
             t = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
             self._lbl_title.setText(t.get("uframe_view_title", "UF#() — YASKAWA YRC1000"))
@@ -246,6 +259,7 @@ class UFrameView(QWidget):
             pass
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget { background:#231811; color:white; }

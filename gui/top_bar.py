@@ -8,6 +8,7 @@ from translations import TRANSLATIONS
 import logger
 
 def get_resource_path(relative_path):
+    """Resolve a resource path, working both in development and in a PyInstaller bundle."""
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), relative_path)
@@ -21,6 +22,7 @@ class TopBar(QWidget):
     _ORANGE_DARK  = "#8A4533"   # darker tone for dark mode
 
     def __init__(self, app_state, parent=None):
+        """Build the top bar: logo, title, theme toggle, and language buttons."""
         super().__init__(parent)
         self.app_state = app_state
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -111,6 +113,7 @@ class TopBar(QWidget):
         self.setStyleSheet(f"background-color: {bg}; color: white; border: none;")
 
     def toggle_theme(self):
+        """Toggle between light and dark theme and notify the application."""
         self.app_state.is_dark_mode = not self.app_state.is_dark_mode
         self.theme_btn.setText("🌙" if not self.app_state.is_dark_mode else "☀")
         self._apply_bar_theme()
@@ -119,6 +122,7 @@ class TopBar(QWidget):
         self.theme_toggled.emit(self.app_state.is_dark_mode)
 
     def _refresh_theme_tooltip(self):
+        """Update the theme button's tooltip to match the current theme."""
         try:
             t = TRANSLATIONS.get(self.app_state.language, TRANSLATIONS["IT"])
             if self.app_state.is_dark_mode:
@@ -129,6 +133,7 @@ class TopBar(QWidget):
             pass
 
     def set_language(self, lang):
+        """Switch the active language and refresh the bar's labels."""
         if lang not in TRANSLATIONS:
             return
         if self.app_state.language != lang:
@@ -137,10 +142,12 @@ class TopBar(QWidget):
             self.language_changed.emit(lang)
 
     def set_logged_in(self, username):
+        """Display the given username as the logged-in user."""
         self._logged_in_user = username
         self.subtitle_label.setText(username or "")
 
     def update_ui(self):
+        """Refresh the bar's texts and styling for the current language and theme."""
         is_dark = bool(getattr(self.app_state, "is_dark_mode", False))
         active_text = self._ORANGE_DARK if is_dark else self._ORANGE_LIGHT
         for lang, btn in self.lang_buttons.items():

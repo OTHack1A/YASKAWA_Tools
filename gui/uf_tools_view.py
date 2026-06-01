@@ -18,6 +18,7 @@ class UfToolsView(QWidget):
 
     def __init__(self, app_state, folder_path, on_close_cb, on_generate_cb,
                  on_excel_cb=None, parent=None):
+        """Build the tool / user-frame view for the given folder."""
         super().__init__(parent)
         self._app_state   = app_state
         self._folder      = folder_path
@@ -34,6 +35,7 @@ class UfToolsView(QWidget):
     # ── Data loading ──────────────────────────────────────────────────────────
 
     def _load_data(self):
+        """Load tool and user-frame data from the backup folder."""
         tool_path = os.path.join(self._folder, TOOL_FILE)
         uf_path   = os.path.join(self._folder, UFRAME_FILE)
 
@@ -59,6 +61,7 @@ class UfToolsView(QWidget):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the view's widgets (tabbed tables, generate/export buttons)."""
         t    = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -119,6 +122,7 @@ class UfToolsView(QWidget):
 
     @staticmethod
     def _wrap_table(tbl):
+        """Wrap a table in a container widget (static helper)."""
         w   = QWidget()
         lay = QVBoxLayout(w)
         lay.setContentsMargins(2, 4, 2, 2)
@@ -127,6 +131,7 @@ class UfToolsView(QWidget):
         return w
 
     def _make_tools_table(self, t):
+        """Build the editable tools table."""
         name_hdr = t.get("tool_col_name", "Nome")
         headers  = ["#", name_hdr,
                     "X [mm]", "Y [mm]", "Z [mm]",
@@ -148,6 +153,7 @@ class UfToolsView(QWidget):
         return tbl
 
     def _make_uf_table(self):
+        """Build the editable user-frames table."""
         t = TRANSLATIONS[self._app_state.language]
         name_hdr = t.get("tool_col_name", "Nome")
         headers = ["UF#", name_hdr,
@@ -173,6 +179,7 @@ class UfToolsView(QWidget):
 
     @staticmethod
     def _base_table(rows, headers):
+        """Build a base table widget from the given rows and headers (static helper)."""
         tbl = QTableWidget(rows, len(headers))
         tbl.setHorizontalHeaderLabels(headers)
         tbl.verticalHeader().setVisible(False)
@@ -185,6 +192,7 @@ class UfToolsView(QWidget):
         return tbl
 
     def _make_item(self, text, col_index, is_tools):
+        """Create a styled, editable table item for the given column."""
         item = QTableWidgetItem(text)
         item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
         if col_index == 0:
@@ -200,6 +208,7 @@ class UfToolsView(QWidget):
     # ── Button / tab handlers ─────────────────────────────────────────────────
 
     def _handle_generate(self):
+        """Generate the tool / user-frame PDF via the generate callback."""
         try:
             t = TRANSLATIONS[self._app_state.language]
             logger.info("log_btn_pressed", t.get("btn_generate_pdf", "Genera PDF"))
@@ -214,6 +223,7 @@ class UfToolsView(QWidget):
                 pass
 
     def _handle_excel(self):
+        """Export the tool / user-frame data to an Excel file."""
         try:
             t = TRANSLATIONS[self._app_state.language]
             logger.info("log_btn_pressed", t.get("btn_export_excel", "Esporta Excel"))
@@ -228,6 +238,7 @@ class UfToolsView(QWidget):
                 pass
 
     def _handle_close(self):
+        """Close the view via the close callback."""
         try:
             t = TRANSLATIONS[self._app_state.language]
             logger.info("log_btn_pressed", t.get("preview_close", "Chiudi"))
@@ -242,6 +253,7 @@ class UfToolsView(QWidget):
                 pass
 
     def _on_tab_changed(self, index):
+        """Handle switching between the tools and user-frames tabs."""
         try:
             new_name = self._tabs.tabText(index)
             logger.info("log_tab_changed", self._current_tab_name, new_name)
@@ -252,6 +264,7 @@ class UfToolsView(QWidget):
     # ── Language update ───────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the view for the new language."""
         try:
             t = TRANSLATIONS[lang]
             self._title_lbl.setText(
@@ -284,6 +297,7 @@ class UfToolsView(QWidget):
     # ── Theme ─────────────────────────────────────────────────────────────────
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget          { background:#231811; color:white; }
