@@ -118,7 +118,7 @@ def generate_drive_excel(info, params_by_cat, output_path,
             log_fn('log_error_generic', f'openpyxl: {exc}')
         return False
 
-    BLUE     = PatternFill('solid', fgColor='D97757')
+    HDR_FILL     = PatternFill('solid', fgColor='D97757')
     HDR_FNT  = Font(color='FFFFFF', bold=True, name='Calibri', size=10)
     CENTER   = Alignment(horizontal='center', vertical='center')
     GRAY     = PatternFill('solid', fgColor='EFEFEF')
@@ -136,7 +136,7 @@ def generate_drive_excel(info, params_by_cat, output_path,
 
     c = ws.cell(row=1, column=1, value=_xl_safe('YASKAWA DriveWizard — Drive Info'))
     ws.merge_cells('A1:B1')
-    c.fill = BLUE; c.font = HDR_FNT; c.alignment = CENTER
+    c.fill = HDR_FILL; c.font = HDR_FNT; c.alignment = CENTER
     ws.row_dimensions[1].height = 18
     ws.freeze_panes = 'A2'
 
@@ -186,7 +186,7 @@ def generate_drive_excel(info, params_by_cat, output_path,
 
         for ci, (hdr_text, width) in enumerate(headers, start=1):
             c = ws.cell(row=1, column=ci, value=hdr_text)
-            c.fill = BLUE; c.font = HDR_FNT; c.alignment = CENTER
+            c.fill = HDR_FILL; c.font = HDR_FNT; c.alignment = CENTER
             ws.column_dimensions[get_column_letter(ci)].width = width
         ws.row_dimensions[1].height = 18
         ws.freeze_panes = 'A2'
@@ -239,7 +239,7 @@ def generate_drive_pdf(info, params_by_cat, output_path,
     fn   = pdf_font(lang)
     fn_b = pdf_font(lang, bold=True)
 
-    hdr_blue = HexColor('#D97757')
+    accent = HexColor('#D97757')
     row_gray  = HexColor('#EFEFEF')
 
     styles = getSampleStyleSheet()
@@ -250,7 +250,7 @@ def generate_drive_pdf(info, params_by_cat, output_path,
 
     section_s = ParagraphStyle('DrSection', parent=styles['Normal'],
         fontSize=11, fontName=fn_b,
-        textColor=hdr_blue, spaceAfter=2*mm, spaceBefore=3*mm)
+        textColor=accent, spaceAfter=2*mm, spaceBefore=3*mm)
 
     code_s = ParagraphStyle('DrCode', parent=styles['Normal'],
         fontSize=8, fontName='Courier', spaceAfter=0.5*mm)
@@ -302,7 +302,7 @@ def generate_drive_pdf(info, params_by_cat, output_path,
 
     def cat_table_style(n):
         ts = TableStyle([
-            ('BACKGROUND',  (0, 0), (-1, 0), hdr_blue),
+            ('BACKGROUND',  (0, 0), (-1, 0), accent),
             ('TEXTCOLOR',   (0, 0), (-1, 0), black),
             ('FONTNAME',    (0, 0), (-1, 0), fn_b),
             ('FONTSIZE',    (0, 0), (-1, 0), 7),
@@ -439,7 +439,7 @@ def generate_drive_pdf(info, params_by_cat, output_path,
             [[Paragraph(f'<a name="cat_{cat}"/>{xml_escape(label)}', cat_text_s)]],
             colWidths=[PAGE_W])
         head_tbl.setStyle(TableStyle([
-            ('BACKGROUND',   (0, 0), (-1, -1), hdr_blue),
+            ('BACKGROUND',   (0, 0), (-1, -1), accent),
             ('TOPPADDING',   (0, 0), (-1, -1), 5),
             ('BOTTOMPADDING',(0, 0), (-1, -1), 5),
             ('LEFTPADDING',  (0, 0), (-1, -1), 6),

@@ -110,7 +110,7 @@ def generate_points_pdf(jbi_data, output_path,
             log_fn('log_error_generic', 'No JBI data to write')
         return False
 
-    hdr_blue = HexColor('#D97757')
+    accent = HexColor('#D97757')
     row_gray  = HexColor('#EFEFEF')
     styles    = getSampleStyleSheet()
 
@@ -160,7 +160,7 @@ def generate_points_pdf(jbi_data, output_path,
 
     def _row_style(n):
         ts = TableStyle([
-            ('BACKGROUND',  (0, 0), (-1, 0), hdr_blue),
+            ('BACKGROUND',  (0, 0), (-1, 0), accent),
             ('TEXTCOLOR',   (0, 0), (-1, 0), black),
             ('FONTNAME',    (0, 0), (-1, 0), fn_b),
             ('FONTSIZE',    (0, 0), (-1, 0), 7),
@@ -188,7 +188,7 @@ def generate_points_pdf(jbi_data, output_path,
     for idx, (fname, points) in enumerate(jbi_data):
         head_tbl = Table([[Paragraph(xml_escape(fname), head_s)]], colWidths=[PAGE_W])
         head_tbl.setStyle(TableStyle([
-            ('BACKGROUND',   (0, 0), (-1, -1), hdr_blue),
+            ('BACKGROUND',   (0, 0), (-1, -1), accent),
             ('TOPPADDING',   (0, 0), (-1, -1), 5),
             ('BOTTOMPADDING',(0, 0), (-1, -1), 5),
             ('LEFTPADDING',  (0, 0), (-1, -1), 4),
