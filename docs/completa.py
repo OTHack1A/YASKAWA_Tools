@@ -73,7 +73,7 @@ def _generate_toc_pdf(output_path, sections, folder_name, lang, t, link_registry
 
     f_reg  = pdf_font(lang, bold=False)
     f_bold = pdf_font(lang, bold=True)
-    BLUE   = colors.HexColor("#D97757")
+    ACCENT   = colors.HexColor("#D97757")
     WHITE  = colors.white
     CGRID  = colors.HexColor("#cccccc")
     LGRAY  = colors.HexColor("#f5f5f5")
@@ -90,8 +90,8 @@ def _generate_toc_pdf(output_path, sections, folder_name, lang, t, link_registry
     s_head = ParagraphStyle("th", fontName=f_bold, fontSize=15, textColor=colors.black,
                              alignment=TA_CENTER, leading=20)
     s_th   = ParagraphStyle("tth", fontName=f_bold, fontSize=9, textColor=colors.black)
-    s_td   = ParagraphStyle("ttd", fontName=f_reg, fontSize=10, textColor=BLUE, leading=14)
-    s_pg   = ParagraphStyle("tpg", fontName=f_bold, fontSize=10, textColor=BLUE, leading=14,
+    s_td   = ParagraphStyle("ttd", fontName=f_reg, fontSize=10, textColor=ACCENT, leading=14)
+    s_pg   = ParagraphStyle("tpg", fontName=f_bold, fontSize=10, textColor=ACCENT, leading=14,
                              alignment=TA_CENTER)
 
     toc_title   = t.get("completa_toc_title",   "INDICE")
@@ -103,7 +103,7 @@ def _generate_toc_pdf(output_path, sections, folder_name, lang, t, link_registry
         colWidths=[W],
     )
     hdr.setStyle(TableStyle([
-        ("BACKGROUND",    (0, 0), (-1, -1), BLUE),
+        ("BACKGROUND",    (0, 0), (-1, -1), ACCENT),
         ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
         ("ALIGN",         (0, 0), (-1, -1), "CENTER"),
         ("TOPPADDING",    (0, 0), (-1, -1), 8),
@@ -122,7 +122,7 @@ def _generate_toc_pdf(output_path, sections, folder_name, lang, t, link_registry
 
     toc_tbl = Table(rows, colWidths=[W - 28 * mm, 28 * mm], repeatRows=1)
     toc_tbl.setStyle(TableStyle([
-        ("BACKGROUND",    (0, 0), (-1,  0), BLUE),
+        ("BACKGROUND",    (0, 0), (-1,  0), ACCENT),
         ("TEXTCOLOR",     (0, 0), (-1,  0), colors.black),
         ("ROWBACKGROUNDS",(0, 1), (-1, -1), [WHITE, LGRAY]),
         ("GRID",          (0, 0), (-1, -1), 0.3, CGRID),

@@ -417,7 +417,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
     from docs.utils import pdf_font
     tr = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
 
-    BLUE  = colors.HexColor("#D97757")
+    ACCENT  = colors.HexColor("#D97757")
     CGRID = colors.HexColor("#cccccc")
     WHITE = colors.white
     GRAY  = colors.HexColor("#888888")
@@ -433,8 +433,8 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
                               alignment=align, leading=size * 1.4, **kw)
 
     s_head = ps("hd", f_bold, 15, colors.black, TA_CENTER)
-    s_sec  = ps("sc", f_bold,  9, BLUE,  spaceBefore=4, spaceAfter=2)
-    s_job  = ps("jb", f_bold, 10, BLUE,  spaceBefore=4, spaceAfter=1)
+    s_sec  = ps("sc", f_bold,  9, ACCENT,  spaceBefore=4, spaceAfter=2)
+    s_job  = ps("jb", f_bold, 10, ACCENT,  spaceBefore=4, spaceAfter=1)
     s_miss = ps("ms", f_reg,   8, GRAY)
     s_code = ParagraphStyle("cd", fontName="Courier", fontSize=7,
                             leading=8.5, spaceBefore=0, spaceAfter=0,
@@ -473,7 +473,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
             colWidths=[W],
         )
         hdr.setStyle(TableStyle([
-            ("BACKGROUND",    (0, 0), (-1, -1), BLUE),
+            ("BACKGROUND",    (0, 0), (-1, -1), ACCENT),
             ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
             ("ALIGN",         (0, 0), (-1, -1), "CENTER"),
             ("TOPPADDING",    (0, 0), (-1, -1), 8),
@@ -486,7 +486,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
     toc = TableOfContents()
     toc.levelStyles = [
         ParagraphStyle("toc0", fontName=f_reg, fontSize=9,
-                       leading=14, leftIndent=0, textColor=BLUE)
+                       leading=14, leftIndent=0, textColor=ACCENT)
     ]
 
     # ── Document ──────────────────────────────────────────────────────────────

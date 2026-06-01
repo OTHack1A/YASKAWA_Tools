@@ -60,7 +60,7 @@ def generate_logdata_pdf(entries, output_path, lang="IT", log_fn=None):
             log_fn('log_error_generic', 'LogData: no entries to write')
         return False
 
-    hdr_blue = HexColor('#D97757')
+    accent = HexColor('#D97757')
     row_gray  = HexColor('#EFEFEF')
     styles    = getSampleStyleSheet()
 

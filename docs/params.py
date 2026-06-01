@@ -153,11 +153,11 @@ def _build_section_table(section_name, param_data, s_hdr, s_name, s_val, s_note,
     """
     2-column table for one section's non-zero parameters.
     Columns: [name1 | value1 | note1 | name2 | value2 | note2]
-    Alternating row colours; header row in blue.
+    Alternating row colours; header row in the accent colour.
     """
-    BLUE   = colors.HexColor("#D97757")
+    ACCENT   = colors.HexColor("#D97757")
     WHITE  = colors.white
-    LBLUE  = colors.HexColor("#FDF0E8")   # even data rows
+    LACCENT  = colors.HexColor("#FDF0E8")   # even data rows
     CGRID  = colors.HexColor("#dddddd")
     MSEP   = colors.HexColor("#bbbbbb")   # mid-page vertical separator
 
@@ -195,12 +195,12 @@ def _build_section_table(section_name, param_data, s_hdr, s_name, s_val, s_note,
     t = Table(rows, colWidths=COL_W, repeatRows=1)
     t.setStyle(TableStyle([
         # Header
-        ("BACKGROUND",    (0, 0), (-1, 0),  BLUE),
+        ("BACKGROUND",    (0, 0), (-1, 0),  ACCENT),
         ("TEXTCOLOR",     (0, 0), (-1, 0),  colors.black),
         ("FONTNAME",      (0, 0), (-1, 0),  "Helvetica-Bold"),
         ("FONTSIZE",      (0, 0), (-1, 0),  8),
         # Alternating data rows
-        ("ROWBACKGROUNDS",(0, 1), (-1, -1), [WHITE, LBLUE]),
+        ("ROWBACKGROUNDS",(0, 1), (-1, -1), [WHITE, LACCENT]),
         # Grid
         ("GRID",          (0, 0), (-1, -1), 0.3, CGRID),
         # Vertical separator between the two halves
@@ -301,7 +301,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
     sections = [(name, data) for name, data in all_sections if data]
 
     # ── Styles ────────────────────────────────────────────────────────────────
-    BLUE  = colors.HexColor("#D97757")
+    ACCENT  = colors.HexColor("#D97757")
     WHITE = colors.white
     GRAY  = colors.HexColor("#888888")
 
@@ -318,8 +318,8 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
                               leading=size * 1.4, **kw)
 
     s_head  = ps("hd", f_bold, 15, WHITE,           TA_CENTER)
-    s_sec   = ps("sc", f_bold,  9, BLUE,            spaceBefore=4, spaceAfter=2)
-    s_job   = ps("jb", f_bold, 10, BLUE,            spaceBefore=4, spaceAfter=1)
+    s_sec   = ps("sc", f_bold,  9, ACCENT,            spaceBefore=4, spaceAfter=2)
+    s_job   = ps("jb", f_bold, 10, ACCENT,            spaceBefore=4, spaceAfter=1)
     s_miss  = ps("ms", f_reg,   8, GRAY)
     s_hdr   = ps("th", f_bold,  8, WHITE)
     s_name  = ps("pn", f_bold,  8, colors.HexColor("#A85C42"))
@@ -333,7 +333,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
             colWidths=[W],
         )
         hdr.setStyle(TableStyle([
-            ("BACKGROUND",    (0, 0), (-1, -1), BLUE),
+            ("BACKGROUND",    (0, 0), (-1, -1), ACCENT),
             ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
             ("ALIGN",         (0, 0), (-1, -1), "CENTER"),
             ("TOPPADDING",    (0, 0), (-1, -1), 8),
@@ -346,7 +346,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
     toc = TableOfContents()
     toc.levelStyles = [
         ParagraphStyle("toc0", fontName=f_reg, fontSize=9,
-                       leading=14, leftIndent=0, textColor=BLUE)
+                       leading=14, leftIndent=0, textColor=ACCENT)
     ]
 
     # ── Document ──────────────────────────────────────────────────────────────

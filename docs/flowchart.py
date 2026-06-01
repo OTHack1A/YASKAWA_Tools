@@ -710,8 +710,8 @@ def layout_jbi(name: str, ast: list) -> FC:
 
 # Colour palette (bright, solar)
 _C = {
-    'term':       '#A85C42',   # deep blue
-    'proc':       '#607D8B',   # blue-gray
+    'term':       '#A85C42',   # terracotta
+    'proc':       '#6B6B6B',   # neutral gray
     'move':       '#F9A825',   # amber/yellow   (MOVL/MOVJ)
     'io':         '#ECEFF1',   # near-white     (SET/DOUT/DIN/WAIT)
     'alarm':      '#C62828',   # deep red       (SETUALM)
@@ -846,7 +846,7 @@ def _draw_shape(c, s: Shape, to_rl, font_name: str):
     rx, ry = to_rl(s.cx, s.cy)
     hw, hh = s.w / 2, s.h / 2
 
-    fill_hex  = _C.get(s.kind, '#607D8B')
+    fill_hex  = _C.get(s.kind, '#6B6B6B')
     fg_hex    = _C_TEXT.get(s.kind, '#FFFFFF')
     fill_c    = rc.HexColor(fill_hex)
     fg_c      = rc.HexColor(fg_hex)
@@ -962,7 +962,7 @@ def generate_pdf(fcs: list, out_path: str, lang: str = 'IT',
 
     font_name = pdf_font(lang)
     font_bold = pdf_font(lang, bold=True)
-    BLUE      = rc.HexColor('#A85C42')
+    ACCENT      = rc.HexColor('#A85C42')
     GRAY      = rc.HexColor('#aaaaaa')
 
     ML = 15 * mm; MR = 15 * mm
@@ -986,7 +986,7 @@ def generate_pdf(fcs: list, out_path: str, lang: str = 'IT',
         doc = _Doc(A4); doc.page = 1 + page_offset
         draw_page_header(c, doc)
 
-        c.setFont(font_bold, 14); c.setFillColor(BLUE)
+        c.setFont(font_bold, 14); c.setFillColor(ACCENT)
         c.drawCentredString(pw_a4/2, ph_a4 - MT - 14, title)
         c.setFont(font_bold, 11); c.setFillColor(rc.black)
         c.drawString(ML, ph_a4 - MT - 36, toc_title)
@@ -994,7 +994,7 @@ def generate_pdf(fcs: list, out_path: str, lang: str = 'IT',
         y_toc = ph_a4 - MT - 58
         for i, fc in enumerate(fcs):
             pg = i + 2 + page_offset
-            c.setFont(font_name, 10); c.setFillColor(BLUE)
+            c.setFont(font_name, 10); c.setFillColor(ACCENT)
             c.drawString(ML + 10, y_toc, fc.name)
             c.setFillColor(rc.black)
             c.drawRightString(pw_a4 - MR, y_toc, str(pg))
@@ -1057,7 +1057,7 @@ def generate_pdf(fcs: list, out_path: str, lang: str = 'IT',
             except Exception:
                 pass
 
-            c.setFont(font_bold, 10); c.setFillColor(BLUE)
+            c.setFont(font_bold, 10); c.setFillColor(ACCENT)
             c.drawString(ML, ph - MT - 13, fc.name)
 
             c.saveState()
@@ -1105,7 +1105,7 @@ def generate_pdf(fcs: list, out_path: str, lang: str = 'IT',
 
 _DIO_STYLE = {
     'term':       'rounded=1;fillColor=#A85C42;fontColor=#fff;strokeColor=#A85C42;',
-    'proc':       'rounded=0;fillColor=#607D8B;fontColor=#fff;strokeColor=#607D8B;',
+    'proc':       'rounded=0;fillColor=#6B6B6B;fontColor=#fff;strokeColor=#6B6B6B;',
     'move':       'rounded=0;fillColor=#F9A825;fontColor=#4A3000;strokeColor=#F9A825;',
     'io':         'rounded=0;fillColor=#ECEFF1;fontColor=#1A1A1A;strokeColor=#90A4AE;',
     'alarm':      'rounded=0;fillColor=#C62828;fontColor=#fff;strokeColor=#C62828;',

@@ -220,7 +220,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0, log_fn=None
         tr = TRANSLATIONS.get(lang, TRANSLATIONS.get("IT", {}))
         cubes = build_cubes(folder_path)
 
-        BLUE  = colors.HexColor("#D97757")
+        ACCENT  = colors.HexColor("#D97757")
         WHITE = colors.white
         CGRID = colors.HexColor("#cccccc")
         LGRAY = colors.HexColor("#f5f5f5")
@@ -267,7 +267,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0, log_fn=None
             colWidths=[W],
         )
         hdr.setStyle(TableStyle([
-            ("BACKGROUND",    (0, 0), (-1, -1), BLUE),
+            ("BACKGROUND",    (0, 0), (-1, -1), ACCENT),
             ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
             ("ALIGN",         (0, 0), (-1, -1), "CENTER"),
             ("TOPPADDING",    (0, 0), (-1, -1), 8),
@@ -306,7 +306,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0, log_fn=None
 
             tbl = Table(rows, colWidths=col_w, repeatRows=1)
             tbl.setStyle(TableStyle([
-                ("BACKGROUND",     (0, 0), (-1, 0), BLUE),
+                ("BACKGROUND",     (0, 0), (-1, 0), ACCENT),
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [WHITE, LGRAY]),
                 ("GRID",           (0, 0), (-1, -1), 0.3, CGRID),
                 ("VALIGN",         (0, 0), (-1, -1), "MIDDLE"),

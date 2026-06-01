@@ -80,7 +80,7 @@ def generate_pdf(folder_path, output_path, lang="IT"):
     folder_name = os.path.basename(os.path.normpath(folder_path))
 
     # ── Palette ───────────────────────────────────────────────────────────────
-    BLUE   = colors.HexColor("#D97757")
+    ACCENT   = colors.HexColor("#D97757")
     DARK   = colors.HexColor("#1a1a2e")
     LGRAY  = colors.HexColor("#f5f5f5")
     MGRAY  = colors.HexColor("#d8d8d8")
@@ -106,7 +106,7 @@ def generate_pdf(folder_path, output_path, lang="IT"):
                               leading=size * 1.35, **kw)
 
     s_head  = ps("hd", f_bold, 15, colors.black, TA_CENTER)
-    s_sec   = ps("sc", f_bold,  9, BLUE,  spaceBefore=4, spaceAfter=1)
+    s_sec   = ps("sc", f_bold,  9, ACCENT,  spaceBefore=4, spaceAfter=1)
     s_lbl   = ps("lb", f_bold,  8, colors.black)
     s_val   = ps("vl", f_reg,   8, colors.black)
 
@@ -132,7 +132,7 @@ def generate_pdf(folder_path, output_path, lang="IT"):
         colWidths=[W],
     )
     hdr.setStyle(TableStyle([
-        ("BACKGROUND",    (0, 0), (-1, -1), BLUE),
+        ("BACKGROUND",    (0, 0), (-1, -1), ACCENT),
         ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
         ("ALIGN",         (0, 0), (-1, -1), "CENTER"),
         ("TOPPADDING",    (0, 0), (-1, -1), 6),

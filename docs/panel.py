@@ -161,7 +161,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0):
     folder_name = os.path.basename(os.path.normpath(folder_path))
 
     # ── Palette ───────────────────────────────────────────────────────────────
-    BLUE  = colors.HexColor("#D97757")
+    ACCENT  = colors.HexColor("#D97757")
     LGRAY = colors.HexColor("#f5f5f5")
     MGRAY = colors.HexColor("#d8d8d8")
     CGRID = colors.HexColor("#cccccc")
@@ -192,8 +192,8 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0):
                               leading=size * 1.4, **kw)
 
     s_head = ps("hd", f_bold, 15, colors.black, TA_CENTER)
-    s_sec  = ps("sc", f_bold,  9, BLUE,  spaceBefore=6, spaceAfter=2)
-    s_bsec = ps("bs", f_bold,  9, BLUE,  spaceBefore=8, spaceAfter=2)
+    s_sec  = ps("sc", f_bold,  9, ACCENT,  spaceBefore=6, spaceAfter=2)
+    s_bsec = ps("bs", f_bold,  9, ACCENT,  spaceBefore=8, spaceAfter=2)
     s_lbl  = ps("lb", f_bold,  8, colors.black)
     s_val  = ps("vl", f_reg,   8, colors.black)
     s_mono = ps("mo", "Courier", 7, colors.black, spaceAfter=0)
@@ -220,7 +220,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0):
         colWidths=[W],
     )
     hdr.setStyle(TableStyle([
-        ("BACKGROUND",    (0, 0), (-1, -1), BLUE),
+        ("BACKGROUND",    (0, 0), (-1, -1), ACCENT),
         ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
         ("ALIGN",         (0, 0), (-1, -1), "CENTER"),
         ("TOPPADDING",    (0, 0), (-1, -1), 8),
@@ -288,7 +288,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0):
         elems += [make_table(time_rows, 55 * mm), Spacer(1, 5 * mm)]
 
     # ── Separatore tra header e corpo ─────────────────────────────────────────
-    elems.append(HRFlowable(width="100%", thickness=1.5, color=BLUE))
+    elems.append(HRFlowable(width="100%", thickness=1.5, color=ACCENT))
     elems.append(Spacer(1, 3 * mm))
 
     # ── Sezioni corpo (CONTROLLER SETTING) ───────────────────────────────────

@@ -1,14 +1,14 @@
-"""Shared PDF page header: company logo (left) + name (center) + Red claude bar."""
+"""Shared PDF page header: company logo (left) + name (center) + accent bar."""
 import os
 import sys
 from reportlab.lib.units import mm
 from reportlab.lib import colors
 
 HEADER_H_MM   = 17   # total header area height (reserved from top of page)
-BAR_H_MM      = 2    # blue dividing bar height
+BAR_H_MM      = 2    # accent bar height
 TOP_MARGIN_MM = 22   # recommended topMargin for all PDFs using this header
 
-_BLUE    = colors.HexColor('#D97757')
+_ACCENT    = colors.HexColor('#D97757')
 _COMPANY = "0THack1A"
 
 
@@ -60,8 +60,8 @@ def draw_page_header(canvas, doc):
         canvas.setFillColor(colors.HexColor('#333333'))
         canvas.drawCentredString(text_x, area_y + area_h / 2 - 3.5, _COMPANY)
 
-        # Blue dividing bar (full page width)
-        canvas.setFillColor(_BLUE)
+        # Accent bar (full page width)
+        canvas.setFillColor(_ACCENT)
         canvas.rect(0, bar_y, W, bar, fill=1, stroke=0)
     except Exception:
         pass
