@@ -55,6 +55,7 @@ _MAX_JBI_SIZE = 50 * 1024 * 1024   # 50 MiB hard cap — JBI files are KB-sized 
 
 
 def _tokenise(path: str) -> List[str]:
+    """Read a JBI file and return the INFORM instruction tokens from its //INST block."""
     tokens: List[str] = []
     in_inst = False
     try:
@@ -77,6 +78,7 @@ def _tokenise(path: str) -> List[str]:
 
 
 def _parse(tokens: List[str], pos: int = 0) -> Tuple[list, int]:
+    """Recursively parse tokens into a nested statement AST (IF/WHILE/SWITCH blocks)."""
     body: list = []
     while pos < len(tokens):
         tok   = tokens[pos]
@@ -138,6 +140,7 @@ def _parse(tokens: List[str], pos: int = 0) -> Tuple[list, int]:
 
 
 def parse_jbi(path: str) -> list:
+    """Parse a JBI file into a nested statement AST."""
     return _parse(_tokenise(path))[0]
 
 
@@ -149,6 +152,7 @@ _R_IO    = re.compile(r'^(SET|DOUT|DIN|WAIT|AOUT|AIN|PULSE|TIMER|MSG)\b', re.I)
 
 
 def _classify(text: str) -> str:
+    """Classify an instruction line into a flowchart node kind (term/proc/move/io/...)."""
     t = text.strip()
     if _R_MOVE.match(t):  return 'move'
     if _R_ALARM.match(t): return 'alarm'
@@ -205,6 +209,7 @@ class FC:
 _sid_counter = 0
 
 def _next_sid() -> int:
+    """Return the next unique shape id (monotonic counter)."""
     global _sid_counter
     _sid_counter += 1
     return _sid_counter
@@ -226,6 +231,7 @@ def _diamond_fit(text: str) -> Tuple[str, float, float]:
 
 
 def _wrap(text: str, chars: int = 22) -> str:
+    """Word-wrap text to a maximum number of characters per line."""
     return '\n'.join(textwrap.wrap(text, chars)) if len(text) > chars else text
 
 
@@ -490,6 +496,7 @@ def _attach_sids(fc: FC, tol: float = 1.5) -> None:
         ports.append((s.sid, s.cx + hw,   s.cy     ))
 
     def _find(x: float, y: float) -> int:
+        """Return the shape id of the port nearest to (x, y) within tolerance."""
         best, bdist = 0, tol
         for sid, px, py in ports:
             d = abs(px - x) + abs(py - y)
@@ -519,6 +526,7 @@ def _dedup_edges(fc: FC) -> None:
     eps = 0.5
 
     def _seg(e: 'Edge'):
+        """Classify an edge as vertical or horizontal and return its normalized span."""
         if abs(e.x1 - e.x2) < eps:
             return 'V', (e.x1 + e.x2) / 2, min(e.y1, e.y2), max(e.y1, e.y2)
         if abs(e.y1 - e.y2) < eps:
@@ -616,6 +624,7 @@ def _redistribute_columns(fc: FC, end_edge_idx: Optional[int]) -> None:
 
     # ── 4. Process edges using shape-id membership ───────────────────────────
     def _edge_col(e: 'Edge') -> Tuple[int, int]:
+        """Return the (source, destination) column indices of an edge."""
         c1 = col_of.get(e.src_sid)
         c2 = col_of.get(e.dst_sid)
         # Fallback to coordinate-based lookup if sid is missing.
@@ -626,6 +635,7 @@ def _redistribute_columns(fc: FC, end_edge_idx: Optional[int]) -> None:
         return c1, c2
 
     def _coord_col(y: float) -> int:
+        """Map a y-coordinate to its column index using the column boundaries."""
         for c in range(n_cols - 1, -1, -1):
             if y >= boundaries[c]:
                 return c
@@ -667,6 +677,7 @@ def _redistribute_columns(fc: FC, end_edge_idx: Optional[int]) -> None:
 # ── MAIN LAYOUT ENTRY POINT ───────────────────────────────────────────────────
 
 def layout_jbi(name: str, ast: list) -> FC:
+    """Lay out a parsed JBI AST into positioned flowchart nodes and edges (an FC)."""
     global _sid_counter
     _sid_counter = 0
     fc      = FC(name=name)
@@ -737,6 +748,7 @@ _SHAPE_LW = 0.0   # no border on filled shapes (except io/call)
 def _to_rl_factory(ox: float, oy: float, ph: float):
     """Return a converter: (layout_x, layout_y) → (rl_x, rl_y)."""
     def _to(cx, cy):
+        """Convert layout coordinates to ReportLab page coordinates."""
         return ox + cx, ph - oy - cy
     return _to
 
@@ -975,6 +987,7 @@ def generate_pdf(fcs: list, out_path: str, lang: str = 'IT',
 
     class _Doc:
         def __init__(self, ps):
+            """Initialise a minimal doc-like object exposing pagesize and margins."""
             self.pagesize    = ps
             self.leftMargin  = ML
             self.rightMargin = MR
@@ -1031,6 +1044,7 @@ def generate_pdf(fcs: list, out_path: str, lang: str = 'IT',
             pw_a3,  ph_a3  = A3
 
             def _fits(pw, ph, _fc=fc):
+                """True if the flowchart fits within the given page size minus margins."""
                 return _fc.width <= pw - ML - MR and _fc.height <= ph - MT - MB
 
             if _fits(pw_a4, ph_a4):
@@ -1119,6 +1133,7 @@ _SC = 0.75   # pt → px
 
 
 def generate_drawio(fcs: list, out_path: str):
+    """Write the given flowcharts to a draw.io XML file."""
     import xml.etree.ElementTree as ET
 
     root = ET.Element('mxGraphModel', compressed='false', dx='1422', dy='762',
@@ -1171,6 +1186,7 @@ def generate_drawio(fcs: list, out_path: str):
 # ── PUBLIC ENTRY POINT ────────────────────────────────────────────────────────
 
 def build_flowcharts(folder: str) -> List[FC]:
+    """Build flowchart (FC) objects for every JBI file in a folder."""
     fcs: List[FC] = []
     try:
         names = sorted(f for f in os.listdir(folder) if f.upper().endswith('.JBI'))

@@ -58,6 +58,7 @@ _RE_LABEL_TOK = re.compile(r'\*L\d+')
 # ── Per-line colour selectors ─────────────────────────────────────────────────
 
 def _line_color(stripped):
+    """Return the syntax colour for an INFORM source line based on its instruction."""
     if not stripped:
         return _C_DEFAULT
     if stripped.startswith("'"):
@@ -83,6 +84,7 @@ def _line_color(stripped):
 
 
 def _line_color_ladder(stripped):
+    """Return the syntax colour for a relay-ladder line based on its instruction."""
     if not stripped:
         return _C_DEFAULT
     u = stripped.upper()
@@ -108,14 +110,17 @@ def _line_color_ladder(stripped):
 
 
 def _xml_escape(text):
+    """Escape &, <, > so the text is safe inside a ReportLab Paragraph."""
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def _tabs_to_spaces(text, tab_size=4):
+    """Expand tabs to spaces."""
     return text.expandtabs(tab_size)
 
 
 def _make_line_para(raw_line, linenum, max_digits, style, color_fn=_line_color):
+    """Build a numbered, syntax-coloured Paragraph for one source line."""
     text = _tabs_to_spaces(raw_line.rstrip("\n\r"))
     lstripped = text.lstrip(" ")
     n_indent = len(text) - len(lstripped)
@@ -285,12 +290,14 @@ def _render_tree_to_story(tree_root, story, s_code, s_miss, tr=None):
 
 class _SetJob(Flowable):
     def __init__(self, name):
+        """Initialise a zero-size flowable that records the current JBI filename for the footer."""
         super().__init__()
         self.name = name
         self.width = 0
         self.height = 0
 
     def draw(self):
+        """On draw, record this flowable's filename as the current footer name."""
         _state["job"] = self.name
 
 
@@ -298,11 +305,13 @@ class _SetJob(Flowable):
 
 class _Heading(Paragraph):
     def __init__(self, text, key, style, heading_text=None):
+        """Initialise a heading Paragraph that registers a TOC entry and a PDF bookmark."""
         super().__init__(text, style)
         self.key = key
         self.heading_text = heading_text if heading_text is not None else text
 
     def drawOn(self, canvas, x, y, _sW=0):
+        """Draw the heading and add a PDF bookmark at its position."""
         canvas.bookmarkPage(self.key)
         super().drawOn(canvas, x, y, _sW)
 
@@ -311,6 +320,7 @@ class _Heading(Paragraph):
 
 class _JobsDocTemplate(BaseDocTemplate):
     def __init__(self, output_path, footer_fn, **kw):
+        """Set up the document template with a single frame and header/footer callbacks."""
         super().__init__(output_path, **kw)
         W, H = A4
         frame = Frame(
@@ -328,9 +338,11 @@ class _JobsDocTemplate(BaseDocTemplate):
     def beforeDocument(self):
         # Fires at the start of every multiBuild pass — reset the per-pass
         # heading registry so the final list reflects only the last pass.
+        """Reset the per-pass heading registry at the start of each multiBuild pass."""
         self._toc_entries = []
 
     def afterFlowable(self, flowable):
+        """Register a TOC entry whenever a heading flowable is laid out."""
         if isinstance(flowable, _Heading):
             self.notify("TOCEntry", (0, flowable.heading_text, self.page, flowable.key))
             # Collect headings independently of the TableOfContents flowable so
@@ -346,6 +358,7 @@ class _JobsDocTemplate(BaseDocTemplate):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _logo_path():
+    """Return the path to the bundled logo, handling PyInstaller bundling."""
     if hasattr(sys, "_MEIPASS"):
         return os.path.join(sys._MEIPASS, "logo-home.bmp")
     root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -395,9 +408,11 @@ def _sort_files(folder, name_map, lbl_always_called="sempre richiamato", lbl_not
 
 
 def _make_footer(page_offset=0):
+    """Return a ReportLab page callback that draws the page number and current section."""
     GRAY = colors.HexColor("#aaaaaa")
 
     def _footer(canvas, doc):
+        """ReportLab page callback: draw the page number and the current section name."""
         canvas.saveState()
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(GRAY)
@@ -413,6 +428,7 @@ def _make_footer(page_offset=0):
 
 def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0,
                  include_toc=True):
+    """Generate the JOBs/INFORM PDF from the .JBI files; returns the per-job navigation list."""
     from translations import TRANSLATIONS
     from docs.utils import pdf_font
     tr = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
@@ -428,6 +444,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
     f_bold = pdf_font(lang, bold=True)
 
     def ps(name, font=None, size=9, color=colors.black, align=TA_LEFT, **kw):
+        """Build a ParagraphStyle with the module's default font and spacing."""
         fn = font if font is not None else f_reg
         return ParagraphStyle(name, fontName=fn, fontSize=size, textColor=color,
                               alignment=align, leading=size * 1.4, **kw)
@@ -468,6 +485,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
     ]
 
     def make_header():
+        """Build the 'JOBs' title header table for the document."""
         hdr = Table(
             [[Paragraph(f"JOBs<br/><font size='10'>{_xml_escape(folder_name)}</font>", s_head)]],
             colWidths=[W],

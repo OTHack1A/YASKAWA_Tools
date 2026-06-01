@@ -8,6 +8,7 @@ try:
 except ImportError:
     GA500_PARAMS = {}
     def get_param_name(code, lang='EN'):
+        """Fallback lookup: return the GA500 parameter name for a code, or the code itself."""
         return GA500_PARAMS.get(code, code)
 
 _CAT_ORDER = ['A', 'b', 'C', 'd', 'E', 'F', 'H', 'L', 'n', 'o', 'q', 'r']
@@ -29,6 +30,7 @@ _CATEGORIES = {
 
 
 def _cat_label(cat):
+    """Return the human-readable label for a parameter-category letter."""
     return _CATEGORIES.get(cat, cat)
 
 
@@ -267,14 +269,20 @@ def generate_drive_pdf(info, params_by_cat, output_path,
 
     class _SetCat(Flowable):
         def __init__(self, label):
+            """Initialise a zero-size flowable that records the current category for the footer."""
             Flowable.__init__(self)
             self._label = label
             self.width = self.height = 0
-        def wrap(self, *a): return 0, 0
-        def draw(self): tracker['cat'] = self._label
+        def wrap(self, *a):
+            """Take no layout space (this flowable is zero-size)."""
+            return 0, 0
+        def draw(self):
+            """Record this flowable's category label as the current footer category."""
+            tracker['cat'] = self._label
 
     # ── Page callback: company header + footer ────────────────────────────────
     def draw_page(canvas, doc):
+        """ReportLab page callback: draw the shared header plus a footer with page number and current category."""
         from docs.pdf_header import draw_page_header
         draw_page_header(canvas, doc)
         canvas.saveState()
@@ -297,10 +305,12 @@ def generate_drive_pdf(info, params_by_cat, output_path,
         fontSize=6, fontName=fn, leading=7)
 
     def _name_cell(code):
+        """Return a Paragraph with the parameter name for the given code, or empty."""
         n = get_param_name(code, lang)
         return Paragraph(xml_escape(n), name_s) if n else ''
 
     def cat_table_style(n):
+        """Build the TableStyle for a category's parameter table with n rows."""
         ts = TableStyle([
             ('BACKGROUND',  (0, 0), (-1, 0), accent),
             ('TEXTCOLOR',   (0, 0), (-1, 0), black),
