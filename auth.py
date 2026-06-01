@@ -32,6 +32,7 @@ except Exception:
 
 
 def _load_state():
+    """Load the persisted lockout state (attempt count + lockout expiry), returning safe defaults on any error."""
     try:
         with open(_STATE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -44,6 +45,7 @@ def _load_state():
 
 
 def _save_state(state):
+    """Atomically persist the lockout state to disk via a temp file and os.replace."""
     try:
         tmp = _STATE_FILE + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
@@ -85,6 +87,7 @@ def record_success():
 
 
 def get_hasher():
+    """Return a configured Argon2 PasswordHasher instance."""
     return PasswordHasher()
 
 

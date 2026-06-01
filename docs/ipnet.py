@@ -5,6 +5,7 @@ import re
 
 
 def _read_lines(filepath):
+    """Read all lines from a file as latin-1, returning an empty list on error."""
     try:
         with open(filepath, 'r', encoding='latin-1', errors='replace') as f:
             return f.readlines()
@@ -13,6 +14,7 @@ def _read_lines(filepath):
 
 
 def _strip(line):
+    """Strip trailing newlines and surrounding whitespace from a line."""
     return line.rstrip('\r\n').strip()
 
 
@@ -154,6 +156,7 @@ def generate_ipnet_pdf(rows, output_path, folder_name="", lang="IT", log_fn=None
         fontSize=8, fontName=fn, leading=10)
 
     def _draw(canvas, doc):
+        """ReportLab page callback: draw the shared header and footer for network-config pages."""
         from docs.pdf_header import draw_page_header
         draw_page_header(canvas, doc)
         canvas.saveState()

@@ -118,10 +118,12 @@ def cell_ids():
 
 
 def _empty_row(cid):
+    """Return a default (all-zero) IF-panel cell row for the given cell id."""
     return [cid, 0, 0, 0, 0, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', '', 0]
 
 
 def _empty_panel(idx):
+    """Return a default IF panel (HOME or 'Panel N') with every cell empty."""
     name = 'HOME' if idx == 0 else f'Panel {idx + 1}'
     return {
         'name_l1': name,
@@ -131,6 +133,7 @@ def _empty_panel(idx):
 
 
 def _coerce(val, is_int, default):
+    """Coerce a value to int (with a default) or to string, tolerating bad input."""
     if is_int:
         try:
             return int(str(val).strip()) if str(val).strip() else default

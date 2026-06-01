@@ -163,6 +163,7 @@ def build_cubes(folder_path):
 
 
 def _fmt_mm(v):
+    """Format a value as millimetres with 3 decimals, or '0.000' if invalid."""
     try:
         return f"{float(v):.3f}"
     except (TypeError, ValueError):
@@ -173,6 +174,7 @@ def _coord_label(coord):
     # Some controllers set the high bit of this field as an internal flag,
     # while the low bits carry the BASE/ROBOT/USER selector. Mask it so the
     # label stays clean (e.g. 129 → 1 → ROBOT). Unknown values fall back to raw.
+    """Map a coordinate-system code (masking the internal flag bit) to its BASE/ROBOT/USER label."""
     try:
         c = int(coord) & 0x7F
     except (TypeError, ValueError):
@@ -181,6 +183,7 @@ def _coord_label(coord):
 
 
 def _group_label(group):
+    """Map a group number to its 'R<n>' label, or em-dash when unset."""
     try:
         g = int(group)
     except (TypeError, ValueError):
@@ -195,6 +198,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0, log_fn=None
     so the preview never breaks. Never raises — failures are logged via log_fn.
     """
     def _log(key, *args):
+        """Forward a log message to the caller's log callback, ignoring any error."""
         if log_fn:
             try:
                 log_fn(key, *args)
@@ -322,6 +326,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0, log_fn=None
         section_label = tr.get("menu_cubeintf", "Cubo interferenza").upper()
 
         def _draw(canvas, doc_):
+            """ReportLab page callback: draw the shared header and footer."""
             draw_page_header(canvas, doc_)
             canvas.saveState()
             canvas.setFont("Helvetica", 7)

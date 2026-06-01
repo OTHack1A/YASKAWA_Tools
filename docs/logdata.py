@@ -79,6 +79,7 @@ def generate_logdata_pdf(entries, output_path, lang="IT", log_fn=None):
     ordered = [f for f in priority if f in seen] + [f for f in all_fields if f not in priority]
 
     def draw_page(canvas, doc):
+        """ReportLab page callback: draw the shared header plus the LogData footer with page number."""
         from docs.pdf_header import draw_page_header
         draw_page_header(canvas, doc)
         canvas.saveState()
@@ -102,6 +103,7 @@ def generate_logdata_pdf(entries, output_path, lang="IT", log_fn=None):
         fontSize=6, fontName='Courier', leading=8, textColor=HexColor('#D97757'))
 
     def _cell(text, style=cell_s):
+        """Wrap text in a Paragraph with the given style, XML-escaping it (empty string if falsy)."""
         return Paragraph(xml_escape(text) if text else '', style)
 
     def _make_event_col(idx, entry):

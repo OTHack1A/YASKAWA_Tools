@@ -128,6 +128,7 @@ def make_footer(source_name, page_offset=0):
     page_offset: aggiunto al numero di pagina interno (per numerazione globale).
     """
     def _footer(canvas, doc):
+        """ReportLab page callback: draw the centered page number and the right-aligned source name."""
         canvas.saveState()
         canvas.setFont(_FONT, _SIZE)
         canvas.setFillColor(_GRAY)
