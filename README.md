@@ -86,9 +86,31 @@ yaskawa-tools/
 ---
 
 ## Digest control
-YaskawaTools-Linux --> sha256:7ecb107b376873189c7ab6f8a744df9a63100814aeac6d2c254d1dd058b84b2e
-YaskawaTools-Windows --> sha256:e757309b835ebf541d7800ec772412d9b3ef83b2b9aa89b085f6c91a6f77d87e
-YaskawaTools-macOS -->  sha256:01dfd4ea3e3cdb3c55d035a42d267ebedf068ec278faf8a6f59bdf94a032a0ca
+
+The binaries are published under [Releases](../../releases). Verify the file you
+downloaded matches the SHA-256 published for that release before running it.
+
+**SHA-256 for the latest release (update these on every release):**
+
+```
+YaskawaTools.exe (Windows) --> sha256:<paste-here>
+YaskawaTools     (Linux)   --> sha256:<paste-here>
+YaskawaTools.dmg (macOS)   --> sha256:<paste-here>
+```
+
+How to compute the digest of a downloaded file:
+
+```powershell
+# Windows (PowerShell)
+Get-FileHash .\YaskawaTools.exe -Algorithm SHA256
+```
+
+```bash
+# Linux
+sha256sum YaskawaTools
+# macOS
+shasum -a 256 YaskawaTools.dmg
+```
 
 ---
 
