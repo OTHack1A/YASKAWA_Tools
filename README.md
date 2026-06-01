@@ -25,7 +25,7 @@ A dedicated module handles **DriveWizard Industrial** project files (`.YDWIProj`
 - **GA500 inverter report** — parses `.YDWIProj` files from DriveWizard Industrial and produces a parameter report with descriptions for all 600+ GA500 parameters.
 - **INFORM flowchart** — generates a graphical flowchart (PDF + draw.io XML) of the execution flow of any JBI job.
 - **Interactive IF Panel viewer** — visualises the 15 IF panel pages with colours and I/O assignments.
-- **Multilingual interface** — English (default), Italian, and Japanese. The language can be switched at runtime from the top bar.
+- **Multilingual interface** — seven languages: English (default), Italian, French, German, Spanish, Ukrainian, and Japanese. The language can be switched at runtime from the top bar.
 - **Rotating log** — all user actions, generated files, warnings, and errors are written to a rotating log file (`YASKAWAToolsLog.log`, max 10 MB). The log is also visible in a collapsible panel inside the application.
 - **Password protection** — access is guarded by an Argon2id-hashed password with a persistent lockout (3 failed attempts → 5-minute block) and a constant-time verification floor to prevent timing attacks.
 
@@ -74,7 +74,7 @@ yaskawa-tools/
 ├── logger.py            Rotating log (10 MB cap)
 ├── secure_paths.py      %APPDATA% path helpers
 ├── tooltips.py          UI tooltips registry
-├── translations.py      Multilingual strings (IT / EN / JA)
+├── translations.py      Multilingual strings (IT / EN / FR / DE / ES / UA / JA)
 │
 ├── docs/                PDF generation modules (one per section)
 ├── gui/                 PySide6 GUI components
