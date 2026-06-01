@@ -2,6 +2,12 @@
 
 A desktop application for generating structured documentation from **YASKAWA YRC1000** robot controller backups, and for reporting **YASKAWA GA500** inverter configurations.
 
+[![Build](https://github.com/OTHack1A/YASKAWA_Tools/actions/workflows/build.yml/badge.svg)](https://github.com/OTHack1A/YASKAWA_Tools/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](#requirements)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![UI](https://img.shields.io/badge/UI-PySide6-green.svg)](https://doc.qt.io/qtforpython/)
+
 ---
 
 ## Overview
@@ -72,7 +78,6 @@ yaskawa-tools/
 │
 ├── docs/                PDF generation modules (one per section)
 ├── gui/                 PySide6 GUI components
-├── tests/               Unit / integration tests
 ├── assets/              Logo, icon, profile image
 ├── references/          YRC1000 parameter reference and GA500 parameter list
 └── dist/                Pre-built executable (YaskawaTools.exe)

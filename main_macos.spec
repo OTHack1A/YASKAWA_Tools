@@ -127,6 +127,6 @@ app = BUNDLE(
         'LSMinimumSystemVersion': '12.0',
         'CFBundleShortVersionString': '1.1.0',
         'CFBundleVersion': '1',
-        'NSHumanReadableCopyright': 'Copyright © 2025 Carmelo Pezzi',
+        'NSHumanReadableCopyright': 'Copyright © 2025 0THack1A',
     },
 )
