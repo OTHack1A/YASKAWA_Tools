@@ -68,6 +68,7 @@ def _trim_log_if_needed():
 _LAST_LOG_T = None
 
 def set_log_language(lang_code):
+    """Set the language used for log messages, if the code is supported."""
     global CURRENT_LANG
     if lang_code in TRANSLATIONS:
         CURRENT_LANG = lang_code
@@ -81,6 +82,7 @@ def _format_duration(seconds: float) -> str:
 
 
 def _write_log(level, msg_key, *args, duration_s=None):
+    """Format and append a translated, timed log entry, then emit it to the in-app log panel."""
     global _LAST_LOG_T
     now_t = time.monotonic()
 
@@ -125,14 +127,17 @@ def _write_log(level, msg_key, *args, duration_s=None):
 
 
 def info(msg_key, *args, duration_s=None):
+    """Log a translated message at INFO level."""
     _write_log("INFO", msg_key, *args, duration_s=duration_s)
 
 
 def warning(msg_key, *args, duration_s=None):
+    """Log a translated message at WARNING level."""
     _write_log("WARNING", msg_key, *args, duration_s=duration_s)
 
 
 def error(msg_key, *args, duration_s=None):
+    """Log a translated message at ERROR level."""
     _write_log("ERROR", msg_key, *args, duration_s=duration_s)
 
 
@@ -151,16 +156,19 @@ class timed:
     __slots__ = ("level", "key", "args", "_t0")
 
     def __init__(self, key, *args, level="INFO"):
+        """Store the log key, args, and level to emit when the timed block exits."""
         self.level = level
         self.key   = key
         self.args  = args
         self._t0   = None
 
     def __enter__(self):
+        """Start the timer and return the context manager."""
         self._t0 = time.monotonic()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """On block exit, log the stored message with the measured elapsed time."""
         elapsed = time.monotonic() - (self._t0 or time.monotonic())
         try:
             _write_log(self.level, self.key, *self.args, duration_s=elapsed)

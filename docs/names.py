@@ -30,9 +30,11 @@ _IO_TABS = [
 # ── Low-level file helpers ────────────────────────────────────────────────────
 
 def _open_r(filepath):
+    """Open a file for reading as latin-1 (replacing undecodable bytes)."""
     return open(filepath, "r", encoding="latin-1", errors="replace")
 
 def _open_w(filepath):
+    """Open a file for writing as latin-1 with CRLF line endings (controller format)."""
     return open(filepath, "w", encoding="latin-1", newline="\r\n")
 
 
@@ -72,6 +74,7 @@ def parse_varname(filepath):
 
 
 def _fill_io_sections(lines, result, section_map):
+    """Fill the result dict with I/O names parsed from the section-delimited lines."""
     current = None
     row = 0
     for line in lines:
@@ -153,6 +156,7 @@ def _xl_write_data(ws, ids, names):
 
 
 def _xl_add_var_tab(wb, tab, prefix, names):
+    """Add an Excel sheet listing variable IDs with editable name/note columns."""
     ws = wb.create_sheet(title=tab)
     _xl_init_sheet(ws, [
         ("ID", 12),
@@ -164,6 +168,7 @@ def _xl_add_var_tab(wb, tab, prefix, names):
 
 
 def _xl_add_io_tab(wb, tab, prefix, names):
+    """Add an Excel sheet listing I/O signal IDs with editable name/note columns."""
     ws = wb.create_sheet(title=tab)
     _xl_init_sheet(ws, [
         ("Segnale", 12),

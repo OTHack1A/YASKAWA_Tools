@@ -13,6 +13,7 @@ _COMPANY = "0THack1A"
 
 
 def _logo_path():
+    """Return the path to the bundled logo (PNG preferred, BMP fallback), handling PyInstaller bundling."""
     if hasattr(sys, '_MEIPASS'):
         base = sys._MEIPASS
     else:

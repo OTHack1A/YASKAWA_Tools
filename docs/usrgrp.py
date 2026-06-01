@@ -6,6 +6,7 @@ GPOT_FILE = "USRGRPOT.DAT"
 
 
 def _open_r(filepath):
+    """Open a file for reading as latin-1 (replacing undecodable bytes)."""
     return open(filepath, "r", encoding="latin-1", errors="replace")
 
 
@@ -104,6 +105,7 @@ def generate_pdf(gpin_groups, gpot_groups, output_path, lang="IT", progress_fn=N
     )
 
     def _tbl_style(n_rows):
+        """Build the TableStyle: header colour, alternating row shading, grid, and alignment."""
         s = [
             ('BACKGROUND',    (0, 0), (-1, 0),  HDR_COLOR),
             ('TEXTCOLOR',     (0, 0), (-1, 0),  colors.black),
@@ -127,6 +129,7 @@ def generate_pdf(gpin_groups, gpot_groups, output_path, lang="IT", progress_fn=N
         return TableStyle(s)
 
     def _build_table(groups, has_swap):
+        """Build the user-group table, with an optional SWAP column."""
         col_num  = t.get("usrgrp_col_num",  "#")
         col_name = t.get("usrgrp_col_name", "Name")
         col_gpin = t.get("usrgrp_col_gpin", "GPIN")
@@ -222,6 +225,7 @@ def generate_excel(gpin_groups, gpot_groups, output_path, lang="IT"):
     col_swap = t.get("usrgrp_col_swap", "SWAP")
 
     def _fill_ws(ws, groups, has_swap, tab_name):
+        """Populate one Excel worksheet with the user-group rows."""
         ws.title = tab_name[:31]
         if has_swap:
             headers = [col_num, col_name, col_gpin, col_bits, col_swap]
