@@ -118,7 +118,7 @@ def generate_drive_excel(info, params_by_cat, output_path,
             log_fn('log_error_generic', f'openpyxl: {exc}')
         return False
 
-    BLUE     = PatternFill('solid', fgColor='0072BC')
+    BLUE     = PatternFill('solid', fgColor='D97757')
     HDR_FNT  = Font(color='FFFFFF', bold=True, name='Calibri', size=10)
     CENTER   = Alignment(horizontal='center', vertical='center')
     GRAY     = PatternFill('solid', fgColor='EFEFEF')

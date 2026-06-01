@@ -204,7 +204,7 @@ def generate_backup_excel(tab_data, output_path,
             log_fn("log_backup_no_data")
         return False
 
-    BLUE     = PatternFill("solid", fgColor="0072BC")
+    BLUE     = PatternFill("solid", fgColor="D97757")
     HDR_FNT  = Font(color="FFFFFF", bold=True, name="Calibri", size=10)
     CENTER   = Alignment(horizontal="center", vertical="center")
     GRAY     = PatternFill("solid", fgColor="EFEFEF")
@@ -269,7 +269,7 @@ def generate_backup_excel_from_template(template_path, sections, output_path,
     from openpyxl.styles import PatternFill, Font, Alignment
     from openpyxl.utils import get_column_letter
 
-    BLUE    = PatternFill("solid", fgColor="0072BC")
+    BLUE    = PatternFill("solid", fgColor="D97757")
     HDR_FNT = Font(color="FFFFFF", bold=True, name="Calibri", size=10)
     CENTER  = Alignment(horizontal="center", vertical="center")
     R_ALIGN = Alignment(horizontal="right")
