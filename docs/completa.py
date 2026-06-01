@@ -18,6 +18,7 @@ from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
 
 
 def _logo_path():
+    """Return the path to the bundled logo, handling PyInstaller bundling."""
     if hasattr(sys, "_MEIPASS"):
         base = sys._MEIPASS
     else:
@@ -30,6 +31,7 @@ def _logo_path():
 
 
 def _count_pages(pdf_path):
+    """Return the page count of a PDF, or 0 on error."""
     try:
         from pypdf import PdfReader
         with open(pdf_path, "rb") as f:
@@ -45,11 +47,13 @@ class _TrackingParagraph(Paragraph):
     We compose with the current transformation matrix to get the absolute page Y.
     """
     def __init__(self, text, style, registry, key):
+        """Initialise a Paragraph that records its absolute page position in the link registry."""
         super().__init__(text, style)
         self._registry = registry
         self._key = key
 
     def drawOn(self, canvas, x, y, _sW=0):
+        """Draw the paragraph and store its absolute page Y in the link registry."""
         m = canvas._currentMatrix  # (a, b, c, d, e, f)
         # absolute page Y = b*x + d*y + f  (standard 2-D affine transform)
         abs_y = m[1] * x + m[3] * y + m[5]
@@ -526,6 +530,7 @@ def generate_completa(folder_path, output_path, attachments=None,
         attachments = []
 
     def _log(key, *args):
+        """Forward a log message to the caller's log callback, ignoring any error."""
         if log_fn:
             try:
                 log_fn(key, *args)
@@ -533,6 +538,7 @@ def generate_completa(folder_path, output_path, attachments=None,
                 pass
 
     def _progress(value):
+        """Report an integer progress value (0-100) to the optional progress callback."""
         if progress_fn:
             try:
                 progress_fn(int(value))
@@ -563,6 +569,7 @@ def generate_completa(folder_path, output_path, attachments=None,
         # ── Pass 1: generate each section to count pages ──────────────────────
 
         def _try_gen(label, fn):
+            """Run a section generator, logging and swallowing any failure; return True on success."""
             try:
                 fn()
                 return True
@@ -586,6 +593,7 @@ def generate_completa(folder_path, output_path, attachments=None,
         _jobs_nav: list = []   # list of (name, page_within_jobs_pdf 1-based)
 
         def _jobs_gen(poff: int = 0):
+            """Generate the JOBs section (without its own TOC) and capture its per-job navigation list."""
             nav = __import__(
                 "docs.jobs", fromlist=["generate_pdf"]
             ).generate_pdf(folder_path, tmp_jobs, log_fn=log_fn, lang=lang,
@@ -608,6 +616,7 @@ def generate_completa(folder_path, output_path, attachments=None,
         _progress(43)
 
         def _gen_usrgrp():
+            """Generate the user-group section into a temp PDF."""
             from docs.usrgrp import parse_gpin, parse_gpot, generate_pdf as _gug
             _gug(parse_gpin(folder_path), parse_gpot(folder_path),
                  tmp_usrgrp, lang=lang)
@@ -620,6 +629,7 @@ def generate_completa(folder_path, output_path, attachments=None,
         _fcs_store: list = []
 
         def _fc_gen(poff: int = 0):
+            """Build the JBI flowcharts (once) and render the flowchart section into a temp PDF."""
             from docs.flowchart import build_flowcharts, generate_pdf as _fc_pdf
             if not _fcs_store:
                 _fcs_store.extend(build_flowcharts(folder_path))
@@ -651,6 +661,7 @@ def generate_completa(folder_path, output_path, attachments=None,
                 _log("log_error_generic", f"CubeIntf parse: {_e}")
 
         def _cube_gen(poff: int = 0):
+            """Generate the interference-cubes section into a temp PDF."""
             from docs.cubeintf import generate_pdf as _ci_pdf
             _ci_pdf(folder_path, tmp_cube, lang=lang, page_offset=poff, log_fn=log_fn)
 
@@ -669,6 +680,7 @@ def generate_completa(folder_path, output_path, attachments=None,
                 _log("log_error_generic", f"FormCut parse: {_e}")
 
         def _formcut_gen(poff: int = 0):
+            """Generate the form-cutting section into a temp PDF."""
             from docs.formcut import generate_pdf as _fc_pdf2
             _fc_pdf2(folder_path, tmp_formcut, lang=lang, page_offset=poff, log_fn=log_fn)
 
@@ -722,6 +734,7 @@ def generate_completa(folder_path, output_path, attachments=None,
 
         if has_usrgrp and n_usrgrp > 0 and usrgrp_off > 0:
             def _regen_usrgrp():
+                """Regenerate the user-group section with the correct page offset."""
                 from docs.usrgrp import parse_gpin, parse_gpot, generate_pdf as _gug
                 _gug(parse_gpin(folder_path), parse_gpot(folder_path),
                      tmp_usrgrp, lang=lang, page_offset=usrgrp_off)

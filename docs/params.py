@@ -22,12 +22,14 @@ _state = {"section": "PARAMETRI"}
 
 class _SetSection(Flowable):
     def __init__(self, name):
+        """Initialise a zero-size flowable that records the current section for the footer."""
         super().__init__()
         self.name = name
         self.width = 0
         self.height = 0
 
     def draw(self):
+        """On draw, record this flowable's section name as the current footer section."""
         _state["section"] = self.name
 
 
@@ -35,11 +37,13 @@ class _SetSection(Flowable):
 
 class _Heading(Paragraph):
     def __init__(self, text, key, style, heading_text=None):
+        """Initialise a heading Paragraph that registers a TOC entry and a PDF bookmark."""
         super().__init__(text, style)
         self.key = key
         self.heading_text = heading_text if heading_text is not None else text
 
     def drawOn(self, canvas, x, y, _sW=0):
+        """Draw the heading and add a PDF bookmark at its position."""
         canvas.bookmarkPage(self.key)
         super().drawOn(canvas, x, y, _sW)
 
@@ -48,6 +52,7 @@ class _Heading(Paragraph):
 
 class _ParamsDocTemplate(BaseDocTemplate):
     def __init__(self, output_path, footer_fn, **kw):
+        """Set up the document template with a single frame and header/footer callbacks."""
         super().__init__(output_path, **kw)
         W, H = A4
         frame = Frame(
@@ -63,6 +68,7 @@ class _ParamsDocTemplate(BaseDocTemplate):
         ])
 
     def afterFlowable(self, flowable):
+        """Register a TOC entry whenever a heading flowable is laid out."""
         if isinstance(flowable, _Heading):
             self.notify("TOCEntry", (0, flowable.heading_text, self.page, flowable.key))
             # bookmarkPage called in _Heading.drawOn for correct top-of-heading placement
@@ -71,6 +77,7 @@ class _ParamsDocTemplate(BaseDocTemplate):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _logo_path():
+    """Return the path to the bundled logo, handling PyInstaller bundling."""
     if hasattr(sys, "_MEIPASS"):
         return os.path.join(sys._MEIPASS, "logo-home.bmp")
     root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -78,9 +85,11 @@ def _logo_path():
 
 
 def _make_footer(page_offset=0):
+    """Return a ReportLab page callback that draws the page number and current section."""
     GRAY = colors.HexColor("#aaaaaa")
 
     def _footer(canvas, doc):
+        """ReportLab page callback: draw the page number and the current section name."""
         canvas.saveState()
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(GRAY)
@@ -275,6 +284,7 @@ def export_excel(folder_path, output_path, lang="IT"):
 # ── PDF generation ────────────────────────────────────────────────────────────
 
 def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0):
+    """Generate the controller-parameters PDF from ALL.PRM; returns True on success."""
     from translations import TRANSLATIONS
     from docs.utils import pdf_font, xml_escape
     tr = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
@@ -312,6 +322,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
 
     def ps(name, font=None, size=9, color=colors.black,
            align=TA_LEFT, **kw):
+        """Build a ParagraphStyle with the module's default font and spacing."""
         fn = font if font is not None else f_reg
         return ParagraphStyle(name, fontName=fn, fontSize=size,
                               textColor=color, alignment=align,
@@ -327,6 +338,7 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
     s_note  = ps("nt", f_reg,   8, colors.HexColor("#aaaaaa"))
 
     def make_header():
+        """Build the title header table for the parameters document."""
         hdr = Table(
             [[Paragraph(f"PARAMETRI<br/><font size='10'>{xml_escape(folder_name)}</font>",
                         s_head)]],

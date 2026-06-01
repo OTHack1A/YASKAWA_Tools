@@ -14,21 +14,25 @@ UFRAME_FILE = "UFRAME.CND"
 # ── Low-level helpers ─────────────────────────────────────────────────────────
 
 def _safe_float(s):
+    """Parse a value as float (accepting comma decimals), or 0.0 on failure."""
     try:
         return float(str(s).strip().replace(',', '.'))
     except (ValueError, TypeError):
         return 0.0
 
 def _safe_int(s):
+    """Parse a value as int, or 0 on failure."""
     try:
         return int(str(s).strip())
     except (ValueError, TypeError):
         return 0
 
 def _fmt(v):
+    """Format a number with 3 decimals."""
     return f"{v:.3f}"
 
 def _is_nonzero(tool):
+    """True if any of the tool's x/y/z/rx/ry/rz components is non-zero."""
     return any(abs(tool[k]) > 1e-9 for k in ('x', 'y', 'z', 'rx', 'ry', 'rz'))
 
 # ── TOOL.CND parsers ──────────────────────────────────────────────────────────
@@ -103,6 +107,7 @@ def _parse_tool_our(lines):
     return tools
 
 def parse_tool_cnd(filepath):
+    """Parse TOOL.CND and return the list of tool-frame entries."""
     with open(filepath, 'r', encoding='latin-1', errors='replace') as fh:
         lines = [ln.rstrip() for ln in fh]
     is_robot = any(re.match(r'^//TOOL\s*NO', ln, re.IGNORECASE) for ln in lines)
@@ -281,7 +286,9 @@ def _table_style(n_rows, has_name_col=True, fn='Helvetica', fn_b='Helvetica-Bold
     return TableStyle(style)
 
 def _make_draw_page_num(page_offset=0):
+    """Return a ReportLab page callback that draws the header and page-number footer."""
     def _draw(canvas, doc):
+        """ReportLab page callback: draw the shared header and the page-number footer."""
         from docs.pdf_header import draw_page_header
         draw_page_header(canvas, doc)
         canvas.saveState()
@@ -299,6 +306,7 @@ def generate_pdf(folder_path, output_path, lang="IT", log_fn=None, page_offset=0
     Returns (n_configured_tools, n_frames).
     """
     def _log(key, *args):
+        """Forward a log message to the caller's log callback, ignoring any error."""
         if log_fn:
             try:
                 log_fn(key, *args)
@@ -420,6 +428,7 @@ def generate_pdf(folder_path, output_path, lang="IT", log_fn=None, page_offset=0
 def generate_uf_excel(folder_path, output_path, lang="IT", log_fn=None):
     """Generate Excel with Tool + UFrame sheets. Returns (n_tools, n_frames)."""
     def _log(key, *args):
+        """Forward a log message to the caller's log callback, ignoring any error."""
         if log_fn:
             try:
                 log_fn(key, *args)
@@ -462,6 +471,7 @@ def generate_uf_excel(folder_path, output_path, lang="IT", log_fn=None):
 
     from docs.utils import excel_safe
     def _make_sheet(ws, headers, rows):
+        """Append a styled header row and the data rows to an Excel worksheet."""
         ws.append(headers)
         for cell in ws[1]:
             cell.font  = hdr_font
@@ -520,6 +530,7 @@ def write_uframe_cnd(filepath, frames_by_num):
         return False, str(exc)
 
     def _eol(ln):
+        """Return the line ending (CRLF or LF) matching the given line."""
         return '\r\n' if '\r' in ln else '\n'
 
     out = []
