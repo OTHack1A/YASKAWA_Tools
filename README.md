@@ -134,6 +134,16 @@ shasum -a 256 YaskawaTools.dmg
 
 ---
 
+## Usage & access
+
+See the [**User Guide**](USER_GUIDE.md) for download, login, and step-by-step usage.
+
+> 🔑 **Access requires a password.** It is not published here — request it via
+> direct message (DM) to **0THack1A**. Please do not open public issues for
+> password requests.
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
