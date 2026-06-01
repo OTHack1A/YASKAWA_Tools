@@ -41,3 +41,7 @@ auth_state.json.tmp
 # Test output
 test_params.pdf
 *.pdf
+
+# Robot controller dump — dati privati, non devono MAI finire nella repo
+R1/
+r1/
