@@ -239,7 +239,7 @@ def export_excel(folder_path, output_path, lang="IT"):
     ws.title = tr.get("params_col_param", "Parametri")[:31]
 
     hdr_font  = Font(bold=True, color="FFFFFF")
-    hdr_fill  = PatternFill("solid", fgColor="0072BC")
+    hdr_fill  = PatternFill("solid", fgColor="D97757")
     hdr_align = Alignment(horizontal="center")
 
     col_sec   = tr.get("targ_section_info", "Sezione")

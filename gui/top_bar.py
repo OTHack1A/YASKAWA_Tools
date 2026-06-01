@@ -43,7 +43,7 @@ class TopBar(QWidget):
             pixmap = pixmap.scaledToHeight(55, Qt.SmoothTransformation)
             self.logo_label.setPixmap(pixmap)
         else:
-            self.logo_label.setText("IRONS TECHNOLOGY")
+            self.logo_label.setText("0THack1A")
             self.logo_label.setStyleSheet("font-weight: bold; font-size: 20px;")
         
         layout.addWidget(self.logo_label)

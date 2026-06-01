@@ -123,7 +123,7 @@ def parse_exioname(filepath):
 def _xl_init_sheet(ws, col_specs):
     """Header row + column widths.  col_specs = [(header, width), ...]"""
     from openpyxl.styles import PatternFill, Font, Alignment
-    BLUE   = PatternFill("solid", fgColor="0072BC")
+    BLUE   = PatternFill("solid", fgColor="D97757")
     WHITE  = Font(color="FFFFFF", bold=True, name="Calibri", size=10)
     CENTER = Alignment(horizontal="center", vertical="center")
     for ci, (hdr, w) in enumerate(col_specs, start=1):
