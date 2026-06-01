@@ -15,6 +15,7 @@ class AppState:
 app_state = AppState()
 
 def change_theme(dark_mode):
+    """Update the global dark/light theme flag and log the change."""
     app_state.is_dark_mode = dark_mode
     from translations import TRANSLATIONS
     t = TRANSLATIONS.get(app_state.language, TRANSLATIONS["IT"])
@@ -23,6 +24,7 @@ def change_theme(dark_mode):
     # For now we'll just handle it within the windows
 
 def change_language(lang):
+    """Switch the global UI language and update the logger's language."""
     app_state.language = lang
     logger.set_log_language(lang)
     logger.info("log_lang_changed", lang)
@@ -30,6 +32,7 @@ def change_language(lang):
 def run():
     # Strip all CLI arguments: the exe accepts no external parameters.
     # This prevents Qt argument injection (-platform, -style, -plugin, etc.)
+    """Application entry point: build the Qt app, apply theme/fonts/icon, and run the login then main-window flow."""
     sys.argv = sys.argv[:1]
     app = QApplication(sys.argv)
 
@@ -77,6 +80,7 @@ def run():
     login = LoginWindow(app_state)
     
     def on_login_success():
+        """On successful login, close the login window and open the main window."""
         login.close()
         main_win = MainWindow(app_state)
         main_win.show()

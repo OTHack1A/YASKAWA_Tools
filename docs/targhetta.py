@@ -67,6 +67,7 @@ def generate_pdf(folder_path, output_path, lang="IT"):
     f_bold = pdf_font(lang, bold=True)
 
     def _fmt_time(raw):
+        """Format a raw operating-time string (HH:MM'SS) into a localized h/min/s string."""
         fmt = tr.get("targ_fmt_time", "{0} h {1} min {2} s")
         try:
             h, rest = raw.split(":", 1)
@@ -100,6 +101,7 @@ def generate_pdf(folder_path, output_path, lang="IT"):
     # ── Style factory ─────────────────────────────────────────────────────────
     def ps(name, font=None, size=8, color=colors.black,
            align=TA_LEFT, **kw):
+        """Build a ParagraphStyle with the module's default font and spacing."""
         fn = font if font is not None else f_reg
         return ParagraphStyle(name, fontName=fn, fontSize=size,
                               textColor=color, alignment=align,
@@ -112,6 +114,7 @@ def generate_pdf(folder_path, output_path, lang="IT"):
 
     # ── Generic 2-column table builder ───────────────────────────────────────
     def make_table(rows, c1=38 * mm):
+        """Build a styled two-column table from the given rows."""
         t = Table(rows, colWidths=[c1, W - c1])
         t.setStyle(TableStyle([
             ("BACKGROUND",    (0, 0), (-1, -1), LGRAY),
@@ -207,6 +210,7 @@ def generate_pdf(folder_path, output_path, lang="IT"):
     section_label = tr.get("targ_section_label", "TARGHETTA")
 
     def _draw_page(canvas, doc):
+        """ReportLab page callback: draw the shared page header."""
         draw_page_header(canvas, doc)
         canvas.saveState()
         W_pg, H_pg = doc.pagesize

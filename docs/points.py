@@ -127,13 +127,19 @@ def generate_points_pdf(jbi_data, output_path,
 
     class _SetFile(Flowable):
         def __init__(self, name):
+            """Initialise a zero-size flowable that records the current JBI filename for the footer."""
             Flowable.__init__(self)
             self._name = name
             self.width = self.height = 0
-        def wrap(self, *a): return 0, 0
-        def draw(self): tracker['fname'] = self._name
+        def wrap(self, *a):
+            """Take no layout space (this flowable is zero-size)."""
+            return 0, 0
+        def draw(self):
+            """Record this flowable's filename as the current footer name."""
+            tracker['fname'] = self._name
 
     def draw_page(canvas, doc):
+        """ReportLab page callback: draw the shared header plus a footer with page number and current JBI filename."""
         from docs.pdf_header import draw_page_header
         draw_page_header(canvas, doc)
         canvas.saveState()
@@ -154,11 +160,13 @@ def generate_points_pdf(jbi_data, output_path,
     PAGE_W  = A4[0] - 30*mm  # 180 mm
 
     def _fmt(v):
+        """Format a value: floats to 3 decimals, empty stays empty, otherwise string."""
         if isinstance(v, float):
             return f'{v:.3f}'
         return str(v) if v != '' else ''
 
     def _row_style(n):
+        """Build the points-table TableStyle for n rows (header colour + alternating shading)."""
         ts = TableStyle([
             ('BACKGROUND',  (0, 0), (-1, 0), accent),
             ('TEXTCOLOR',   (0, 0), (-1, 0), black),

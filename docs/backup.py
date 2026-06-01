@@ -6,6 +6,7 @@ _VAR_SECTIONS = ["B", "I", "D", "R", "S", "P"]
 
 
 def _open_r(filepath):
+    """Open a file for reading as latin-1 (replacing undecodable bytes)."""
     return open(filepath, "r", encoding="latin-1", errors="replace")
 
 
@@ -380,9 +381,11 @@ def generate_backup_pdf(tab_data, output_path, folder_name="",
     )
 
     def make_header_row():
+        """Return the repeated 3-column header row (ID / Name / Value) for the 3-up layout."""
         return [col_id_label, col_name_label, col_value_label] * 3
 
     def make_table_style(n_data_rows):
+        """Build the variable-table TableStyle for the given number of data rows."""
         ts = TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), accent),
             ("TEXTCOLOR", (0, 0), (-1, 0), black),
@@ -439,6 +442,7 @@ def generate_backup_pdf(tab_data, output_path, folder_name="",
         story.append(tbl)
 
     def _draw_page_number(canvas, doc):
+        """ReportLab page callback: draw the shared header and the page-number footer."""
         from docs.pdf_header import draw_page_header
         draw_page_header(canvas, doc)
         canvas.saveState()

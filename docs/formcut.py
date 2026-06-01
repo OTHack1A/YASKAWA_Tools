@@ -168,6 +168,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0, log_fn=None
     the preview never breaks. Never raises — failures are logged via log_fn.
     """
     def _log(key, *args):
+        """Forward a log message to the caller's log callback, ignoring any error."""
         if log_fn:
             try:
                 log_fn(key, *args)
@@ -235,12 +236,14 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0, log_fn=None
         SHAPES  = {i: tr.get(f"formcut_shape_{i}", str(i)) for i in range(5)}
 
         def _tok(lines, li, ti):
+            """Safely return token ti of line li, or None if out of range."""
             try:
                 return lines[li][ti]
             except (IndexError, TypeError):
                 return None
 
         def _num(tok):
+            """Parse a token as float, or None if it is not numeric."""
             try:
                 return float(tok)
             except (TypeError, ValueError):
@@ -378,6 +381,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0, log_fn=None
         section_label = tr.get("menu_formcut", "FormCut").upper()
 
         def _draw(canvas, doc_):
+            """ReportLab page callback: draw the shared header and footer."""
             draw_page_header(canvas, doc_)
             canvas.saveState()
             canvas.setFont("Helvetica", 7)
