@@ -1788,7 +1788,7 @@ class _GA500ParamsView(QWidget):
 
         from docs.drive import _CAT_ORDER, _CATEGORIES
 
-        hdr_blue = HexColor('#D97757')
+        accent = HexColor('#D97757')
         row_gray  = HexColor('#EFEFEF')
         styles    = getSampleStyleSheet()
 
@@ -1826,7 +1826,7 @@ class _GA500ParamsView(QWidget):
 
         def row_style(n):
             ts = TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), hdr_blue),
+                ('BACKGROUND', (0, 0), (-1, 0), accent),
                 ('TEXTCOLOR',  (0, 0), (-1, 0), HexColor('#000000')),
                 ('FONTNAME',   (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE',   (0, 0), (-1, 0), 7),
@@ -1854,7 +1854,7 @@ class _GA500ParamsView(QWidget):
             label = _CATEGORIES.get(cat, cat)
             head_tbl = Table([[Paragraph(label, cat_s)]], colWidths=[PAGE_W])
             head_tbl.setStyle(TableStyle([
-                ('BACKGROUND',    (0, 0), (-1, -1), hdr_blue),
+                ('BACKGROUND',    (0, 0), (-1, -1), accent),
                 ('TOPPADDING',    (0, 0), (-1, -1), 4),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ]))

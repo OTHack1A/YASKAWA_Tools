@@ -143,7 +143,7 @@ def generate_ipnet_pdf(rows, output_path, folder_name="", lang="IT", log_fn=None
     fn   = pdf_font(lang)
     fn_b = pdf_font(lang, bold=True)
 
-    hdr_blue = HexColor('#A85C42')
+    accent = HexColor('#A85C42')
     alt_gray = HexColor('#FDF0E8')
     styles   = getSampleStyleSheet()
 
@@ -178,7 +178,7 @@ def generate_ipnet_pdf(rows, output_path, folder_name="", lang="IT", log_fn=None
         ])
 
     ts = TableStyle([
-        ('BACKGROUND',    (0, 0), (-1, 0),  hdr_blue),
+        ('BACKGROUND',    (0, 0), (-1, 0),  accent),
         ('TEXTCOLOR',     (0, 0), (-1, 0),  black),
         ('FONTNAME',      (0, 0), (-1, 0),  fn_b),
         ('FONTSIZE',      (0, 0), (-1, 0),  8),

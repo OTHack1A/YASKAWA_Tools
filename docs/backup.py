@@ -204,7 +204,7 @@ def generate_backup_excel(tab_data, output_path,
             log_fn("log_backup_no_data")
         return False
 
-    BLUE     = PatternFill("solid", fgColor="D97757")
+    HDR_FILL     = PatternFill("solid", fgColor="D97757")
     HDR_FNT  = Font(color="FFFFFF", bold=True, name="Calibri", size=10)
     CENTER   = Alignment(horizontal="center", vertical="center")
     GRAY     = PatternFill("solid", fgColor="EFEFEF")
@@ -221,7 +221,7 @@ def generate_backup_excel(tab_data, output_path,
         for ci, (label, width) in enumerate(
                 [(col_id_label, 12), (col_name_label, 30), (col_value_label, 22)], start=1):
             c = ws.cell(row=1, column=ci, value=label)
-            c.fill = BLUE
+            c.fill = HDR_FILL
             c.font = HDR_FNT
             c.alignment = CENTER
             ws.column_dimensions[c.column_letter].width = width
@@ -269,7 +269,7 @@ def generate_backup_excel_from_template(template_path, sections, output_path,
     from openpyxl.styles import PatternFill, Font, Alignment
     from openpyxl.utils import get_column_letter
 
-    BLUE    = PatternFill("solid", fgColor="D97757")
+    HDR_FILL    = PatternFill("solid", fgColor="D97757")
     HDR_FNT = Font(color="FFFFFF", bold=True, name="Calibri", size=10)
     CENTER  = Alignment(horizontal="center", vertical="center")
     R_ALIGN = Alignment(horizontal="right")
@@ -299,7 +299,7 @@ def generate_backup_excel_from_template(template_path, sections, output_path,
         col_letter = get_column_letter(hdr_col)
 
         hdr_cell = ws.cell(row=1, column=hdr_col, value=col_value_label)
-        hdr_cell.fill = BLUE
+        hdr_cell.fill = HDR_FILL
         hdr_cell.font = HDR_FNT
         hdr_cell.alignment = CENTER
         ws.column_dimensions[col_letter].width = 22
@@ -368,7 +368,7 @@ def generate_backup_pdf(tab_data, output_path, folder_name="",
     # 3 groups of [ID=13mm, Name=30mm, Value=17mm] = 180mm content width
     CW = [13*mm, 30*mm, 17*mm] * 3
 
-    hdr_blue = HexColor("#D97757")
+    accent = HexColor("#D97757")
     row_gray  = HexColor("#EFEFEF")
 
     styles = getSampleStyleSheet()
@@ -384,7 +384,7 @@ def generate_backup_pdf(tab_data, output_path, folder_name="",
 
     def make_table_style(n_data_rows):
         ts = TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), hdr_blue),
+            ("BACKGROUND", (0, 0), (-1, 0), accent),
             ("TEXTCOLOR", (0, 0), (-1, 0), black),
             ("FONTNAME", (0, 0), (-1, 0), f_bold),
             ("FONTSIZE", (0, 0), (-1, 0), 7),
