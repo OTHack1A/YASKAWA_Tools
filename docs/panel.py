@@ -18,12 +18,14 @@ _RE_DT = re.compile(r"(\d{4})/(\d{2})/(\d{2})\s+(\d{2}:\d{2}:\d{2})")
 
 
 def _sub_dh(m):
+    """Regex replacement: expand a date-with-hours match into a readable timestamp."""
     y, mo, d, hm, hh, mm, ss = m.groups()
     return (f"{int(d)} {_MESI.get(mo, mo)} {y} ore {hm}"
             f" - totale {int(hh)} ore {int(mm)} min {int(ss)} sec")
 
 
 def _sub_dt(m):
+    """Regex replacement: expand a date-time match into a readable timestamp."""
     y, mo, d, t = m.groups()
     return f"{int(d)} {_MESI.get(mo, mo)} {y} {t}"
 
@@ -36,6 +38,7 @@ def _convert_dates(text):
 
 
 def _xml_escape(text):
+    """Escape &, <, > so the text is safe inside a ReportLab Paragraph."""
     if text is None:
         return ""
     if not isinstance(text, str):
@@ -47,6 +50,7 @@ def _xml_escape(text):
 
 
 def _logo_path():
+    """Return the path to the bundled logo, handling PyInstaller bundling."""
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, "logo-home.bmp")
     root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -56,6 +60,7 @@ def _logo_path():
 # ── Parsing ───────────────────────────────────────────────────────────────────
 
 def _read_lines(filepath):
+    """Read all lines from a file as latin-1, returning an empty list on error."""
     with open(filepath, "r", encoding="utf-8", errors="replace") as f:
         return [line.rstrip() for line in f]
 
@@ -143,6 +148,7 @@ def _parse_body(lines, body_start):
 # ── Generazione PDF ───────────────────────────────────────────────────────────
 
 def generate_pdf(folder_path, output_path, lang="IT", page_offset=0):
+    """Generate the operator-panel PDF from PANELBOX.LOG; returns True on success."""
     from reportlab.lib.pagesizes import A4
     from reportlab.lib import colors
     from reportlab.lib.units import mm
@@ -186,6 +192,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0):
     # ── Stili ─────────────────────────────────────────────────────────────────
     def ps(name, font=None, size=9, color=colors.black,
            align=TA_LEFT, **kw):
+        """Build a ParagraphStyle with the module's default font and spacing."""
         fn = font if font is not None else f_reg
         return ParagraphStyle(name, fontName=fn, fontSize=size,
                               textColor=color, alignment=align,
@@ -200,6 +207,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0):
 
     # ── Tabella generica 2 colonne ────────────────────────────────────────────
     def make_table(rows, c1=45 * mm):
+        """Build a styled two-column table from the given rows."""
         t = Table(rows, colWidths=[c1, W - c1])
         t.setStyle(TableStyle([
             ("BACKGROUND",    (0, 0), (-1, -1), LGRAY),
@@ -313,6 +321,7 @@ def generate_pdf(folder_path, output_path, lang="IT", page_offset=0):
                 elems.append(Paragraph(safe, s_mono))
 
     def _page_fn(canvas, doc):
+        """ReportLab page callback: draw the shared header and footer."""
         draw_page_header(canvas, doc)
         _footer(canvas, doc)
 
