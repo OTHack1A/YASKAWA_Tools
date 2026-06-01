@@ -217,7 +217,7 @@ def write_ifpanel(filepath, panels):
                 v = row[j] if j < len(row) else ('' if j in _STR_FIELDS else 0)
                 parts.append(str(v))
             lines.append(','.join(parts) + '\r\n')
-    with open(filepath, 'w', encoding='latin-1', errors='replace') as fh:
+    with open(filepath, 'w', encoding='latin-1', errors='replace', newline='') as fh:
         fh.writelines(lines)
 
 

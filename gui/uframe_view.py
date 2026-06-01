@@ -206,9 +206,21 @@ class UFrameView(QWidget):
     # ── Save ──────────────────────────────────────────────────────────────────
 
     def _on_save(self):
-        """Validate the edited frames and write them back to the controller file."""
+        """Validate the edited frames and export them to a chosen destination."""
+        from PySide6.QtWidgets import QFileDialog
         from docs.uf_tools import write_uframe_cnd, UFRAME_FILE
-        uf_path = os.path.join(self._folder, UFRAME_FILE)
+        t = TRANSLATIONS[self._app_state.language]
+
+        # Ask the user where to export. Default to the source folder and keep the
+        # exact UFRAME.CND filename so the file can be re-imported on the robot.
+        default_path = os.path.join(self._folder, UFRAME_FILE)
+        uf_path, _ = QFileDialog.getSaveFileName(
+            self, t.get("uframe_btn_export", "Esporta"), default_path,
+            "Controller Data (*.CND);;All Files (*)")
+        if not uf_path:
+            logger.info("log_cancelled", "UF#()")
+            return
+
         frames_by_num = {}
         for ri in range(self._tbl.rowCount()):
             try:
@@ -230,6 +242,12 @@ class UFrameView(QWidget):
             ok, err = write_uframe_cnd(uf_path, frames_by_num)
             if ok:
                 logger.info("log_uframe_saved")
+                try:
+                    from docs.fsutil import reveal_in_explorer
+                    folder = reveal_in_explorer(uf_path)
+                    logger.info("log_open_folder", folder)
+                except Exception as exc:
+                    logger.warning("log_error_generic", str(exc))
             else:
                 logger.error("log_uframe_error", err or "unknown error")
         except Exception as exc:
