@@ -109,6 +109,7 @@ class _IFPanelPreview(QWidget):
     _OY  = 10  # top/bottom margin
 
     def __init__(self, panel, is_dark, parent=None):
+        """Initialise the IF-panel preview widget for a panel."""
         super().__init__(parent)
         self._panel   = panel
         self._is_dark = is_dark
@@ -117,10 +118,12 @@ class _IFPanelPreview(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
     def set_panel(self, panel):
+        """Set the panel to render and repaint."""
         self._panel = panel
         self.update()
 
     def _cell_dims(self):
+        """Return the cell width and height for the current widget size."""
         W = max(self.width(),  400)
         H = max(self.height(), 200)
         cw = (W - 2 * self._OX - 7 * self._GAP) // 8
@@ -128,6 +131,7 @@ class _IFPanelPreview(QWidget):
         return max(cw, 50), max(ch, 40)
 
     def paintEvent(self, event):
+        """Paint the 15-cell IF panel."""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setRenderHint(QPainter.TextAntialiasing)
@@ -144,6 +148,7 @@ class _IFPanelPreview(QWidget):
         painter.end()
 
     def _draw_cell(self, painter, x, y, w, h, cid, row):
+        """Paint a single IF-panel cell (background colour, label, and I/O assignment)."""
         try:
             setup   = int(row[F_SETUP])
             shape   = int(row[F_SHAPE])
@@ -260,6 +265,7 @@ class _IFPanelPreview(QWidget):
 class IFPanelView(QWidget):
 
     def __init__(self, filepath, app_state, on_close_cb):
+        """Build the IF-panel editor view for the given file."""
         super().__init__()
         self._filepath     = filepath
         self._app_state    = app_state
@@ -275,6 +281,7 @@ class IFPanelView(QWidget):
     # ── Load ──────────────────────────────────────────────────────────────────
 
     def _load(self):
+        """Parse the IFPANEL.DAT file into the editable panel data."""
         try:
             from docs.ifpanel import parse_ifpanel
             self._panels = parse_ifpanel(self._filepath)
@@ -286,6 +293,7 @@ class IFPanelView(QWidget):
     # ── Build UI ──────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the view's widgets (tabbed editable panel tables and buttons)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(6, 4, 6, 4)
@@ -360,9 +368,11 @@ class IFPanelView(QWidget):
         self._tab_widget.setCurrentIndex(0)
 
     def _on_tab_changed(self, idx):
+        """Handle switching between panel tabs."""
         self._build_tab(idx)
 
     def _build_tab(self, tab_idx):
+        """Build the editable table for one panel tab."""
         if tab_idx in self._built_tabs:
             return
         self._built_tabs.add(tab_idx)
@@ -423,10 +433,12 @@ class IFPanelView(QWidget):
             row = panel['cells'].get(cid, _empty_row(cid))
 
             def _int(fi, _row=row):
+                """Read a panel field's text as int (row-bound helper)."""
                 try: return int(str(_row[fi]).strip())
                 except: return 0
 
             def _str(fi, _row=row):
+                """Read a panel field's text as string (row-bound helper)."""
                 return str(_row[fi]) if _row[fi] is not None else ''
 
             # Auto-set SECURITY = 1 (Editing Mode) — hidden from UI
@@ -571,6 +583,7 @@ class IFPanelView(QWidget):
 
     @staticmethod
     def _make_combo(opts, cur_val):
+        """Build a combo box with the given options and current value."""
         cb = QComboBox()
         for code, label in opts:
             cb.addItem(label, code)
@@ -580,6 +593,7 @@ class IFPanelView(QWidget):
 
     @staticmethod
     def _col_headers(t=None):
+        """Return the localized column headers for the panel table."""
         if t is None:
             t = {}
         return [
@@ -606,12 +620,14 @@ class IFPanelView(QWidget):
     # ── Combo click logging ───────────────────────────────────────────────────
 
     def _wire_combo_log(self, cb, tab_idx, cid, col_idx):
+        """Connect a combo box so its changes are logged and applied."""
         cb._log_tab     = tab_idx
         cb._log_cid     = cid
         cb._log_col_idx = col_idx
         cb.installEventFilter(self)
 
     def eventFilter(self, obj, event):
+        """Qt event filter: intercept events for the watched widgets."""
         if event.type() == QEvent.Type.MouseButtonPress:
             tab  = getattr(obj, '_log_tab',     None)
             cid  = getattr(obj, '_log_cid',     None)
@@ -629,6 +645,7 @@ class IFPanelView(QWidget):
     # ── Slots ─────────────────────────────────────────────────────────────────
 
     def _on_group_name(self, tab_idx, key, text):
+        """Handle editing a panel group's name."""
         try:
             self._panels[tab_idx][key] = text
             t = TRANSLATIONS.get(self._app_state.language, TRANSLATIONS["IT"])
@@ -637,6 +654,7 @@ class IFPanelView(QWidget):
             pass
 
     def _combo_changed(self, tab_idx, row_idx, cid, field_idx, combo):
+        """Handle a combo selection change in a panel cell."""
         try:
             val = combo.currentData()
             if val is None:
@@ -649,6 +667,7 @@ class IFPanelView(QWidget):
             logger.error("log_error_generic", str(exc))
 
     def _on_shape_changed(self, tab_idx, row_idx, cid, shape_cb, sub_cb):
+        """Handle a cell's shape change and refresh its sub-type options."""
         try:
             shape_val = shape_cb.currentData()
             self._panels[tab_idx]['cells'][cid][F_SHAPE] = shape_val
@@ -668,6 +687,7 @@ class IFPanelView(QWidget):
             logger.error("log_error_generic", str(exc))
 
     def _on_subtype_changed(self, tab_idx, row_idx, cid, sub_cb):
+        """Handle a cell's sub-type change."""
         try:
             val = sub_cb.currentData()
             if val is None:
@@ -764,6 +784,7 @@ class IFPanelView(QWidget):
             logger.error('log_error_generic', str(exc))
 
     def _on_item_changed(self, tab_idx, item, ids):
+        """Handle an edit to a table item and write it back to the panel data."""
         if item is None:
             return
         try:
@@ -832,6 +853,7 @@ class IFPanelView(QWidget):
             logger.error("log_error_generic", str(exc))
 
     def _on_cell_clicked(self, tab_idx, row, col):
+        """Handle clicking a table cell."""
         try:
             ti = self._tab_info.get(tab_idx)
             if not ti:
@@ -846,6 +868,7 @@ class IFPanelView(QWidget):
             logger.error("log_error_generic", str(exc))
 
     def _on_preview(self, panel_idx):
+        """Open the graphical preview for the selected panel."""
         try:
             self._sync_group_names(panel_idx)
             self._preview_panel_idx = panel_idx
@@ -861,16 +884,19 @@ class IFPanelView(QWidget):
             logger.error("log_error_generic", str(exc))
 
     def _on_preview_close(self):
+        """Close the panel preview."""
         self._stacked.setCurrentIndex(0)
         logger.info("log_ifpanel_preview_closed")
 
     def _on_close_main(self):
+        """Close the IF-panel view."""
         logger.info("log_btn_pressed", self._btn_close_main.text())
         self._on_close()
 
     # ── Export ────────────────────────────────────────────────────────────────
 
     def _on_export(self):
+        """Export the edited panels to an IFPANEL.DAT file."""
         import os
         t = TRANSLATIONS.get(self._app_state.language, TRANSLATIONS["IT"])
         folder = QFileDialog.getExistingDirectory(
@@ -889,6 +915,7 @@ class IFPanelView(QWidget):
             logger.error("log_error_generic", str(exc))
 
     def _sync_group_names(self, tab_idx):
+        """Sync one tab's group-name fields into the panel data."""
         ti = self._tab_info.get(tab_idx)
         if not ti:
             return
@@ -896,12 +923,14 @@ class IFPanelView(QWidget):
         self._panels[tab_idx]['name_l2'] = ti['name_l2'].text()
 
     def _sync_all_group_names(self):
+        """Sync every tab's group-name fields into the panel data."""
         for ti_idx in self._built_tabs:
             self._sync_group_names(ti_idx)
 
     # ── Language update ───────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the IF-panel view for the new language."""
         try:
             t = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
             self._lbl_title.setText(t.get("ifpanel_view_title", "IFPanel — YASKAWA YRC1000"))
@@ -936,6 +965,7 @@ class IFPanelView(QWidget):
             logger.error("log_error_generic", str(exc))
 
     def _rebuild_combos_lang(self, t):
+        """Rebuild the combo-box option labels for the new language."""
         setup_opts   = resolve_options(SETUP_OPTIONS,     t)
         color_opts   = resolve_options(COLOR_OPTIONS,     t)
         io_type_opts = resolve_options(IO_TYPE_OPTIONS,   t)
@@ -988,6 +1018,7 @@ class IFPanelView(QWidget):
     # ── Theme ─────────────────────────────────────────────────────────────────
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         ff = "'Yu Gothic UI','Meiryo','MS Gothic','Segoe UI',sans-serif"
         if self._app_state.is_dark_mode:
             self.setStyleSheet(f"""

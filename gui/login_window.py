@@ -13,6 +13,7 @@ class LoginWindow(QWidget):
     login_successful = Signal()
 
     def __init__(self, app_state):
+        """Initialise the login window with the shared application state."""
         super().__init__()
         self.app_state = app_state
         self.attempts_remaining = 3
@@ -26,6 +27,7 @@ class LoginWindow(QWidget):
         self._apply_tooltips()
 
     def setup_ui(self):
+        """Build the login window's widgets (logo, password field, buttons, footer)."""
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
@@ -102,6 +104,7 @@ class LoginWindow(QWidget):
         main_layout.addWidget(self.content_frame)
 
     def apply_theme(self):
+        """Apply the current light/dark theme styling to the login window."""
         if self.app_state.is_dark_mode:
             # Dark theme
             self.setStyleSheet("background-color: #231811; color: white;")
@@ -176,6 +179,7 @@ class LoginWindow(QWidget):
             """)
 
     def showEvent(self, event):
+        """On show, move focus to the password field."""
         super().showEvent(event)
         try:
             QTimer.singleShot(0, self.txt_password.setFocus)
@@ -183,12 +187,14 @@ class LoginWindow(QWidget):
             pass
 
     def on_theme_toggled(self, is_dark):
+        """Handle the theme toggle: restyle the window and log the change."""
         self.apply_theme()
         t = TRANSLATIONS[self.app_state.language]
         theme_name = t["theme_dark"] if is_dark else t["theme_light"]
         logger.info("log_theme_changed", theme_name)
 
     def on_language_changed(self, lang):
+        """Handle a language change: re-translate the window's labels."""
         t = TRANSLATIONS[lang]
         logger.set_log_language(lang)
         logger.info("log_lang_changed", lang)
@@ -214,6 +220,7 @@ class LoginWindow(QWidget):
         # Persistent lockout: a restart no longer resets the failure counter,
         # so an attacker that hit the threshold must wait the cooldown out
         # regardless of how many times the app is relaunched.
+        """Verify the entered password; on success emit login, otherwise count the failure and lock out at the limit."""
         if auth.lockout_remaining_seconds() > 0:
             logger.error("log_max_attempts")
             self.txt_password.clear()
@@ -243,9 +250,11 @@ class LoginWindow(QWidget):
                 self.vibrate()
 
     def closeEvent(self, event):
+        """Handle the window close event (default behaviour)."""
         super().closeEvent(event)
 
     def vibrate(self):
+        """Shake the window briefly to signal a failed login."""
         self.animation_group = QSequentialAnimationGroup()
         
         # Save original geometry

@@ -25,6 +25,7 @@ class _NameLineEdit(QLineEdit):
     _CH_RE = re.compile(r'[A-Za-z0-9 _\-]')
 
     def keyPressEvent(self, event):
+        """Handle key presses in the cell editor."""
         ch = event.text()
         if ch and ord(ch[0]) >= 32:
             sel = self.selectedText()
@@ -40,15 +41,18 @@ class _NameLineEdit(QLineEdit):
 
 class _NameDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
+        """Create the cell editor widget."""
         ed = _NameLineEdit(parent)
         self._prev = index.data() or ""
         return ed
 
     def setEditorData(self, editor, index):
+        """Load the cell's value into the editor."""
         self._prev = index.data() or ""
         editor.setText(self._prev)
 
     def setModelData(self, editor, model, index):
+        """Validate and write the editor's value back into the model."""
         text = editor.text()
         if not _RE_NAME.match(text):
             logger.warning("log_invalid_input", text)
@@ -65,6 +69,7 @@ class _GpinLineEdit(QLineEdit):
     """QLineEdit accepting only values ^2\\d{0,3}$, logs blocked chars."""
 
     def keyPressEvent(self, event):
+        """Handle key presses in the cell editor."""
         ch = event.text()
         if ch and ord(ch[0]) >= 32:
             if not ch.isdigit():
@@ -88,15 +93,18 @@ class _GpinLineEdit(QLineEdit):
 
 class _GpinDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
+        """Create the cell editor widget."""
         ed = _GpinLineEdit(parent)
         self._prev = index.data() or ""
         return ed
 
     def setEditorData(self, editor, index):
+        """Load the cell's value into the editor."""
         self._prev = index.data() or ""
         editor.setText(self._prev)
 
     def setModelData(self, editor, model, index):
+        """Validate and write the editor's value back into the model."""
         text = editor.text().strip()
         if text and not _RE_GPIN.match(text):
             logger.warning("log_invalid_input", text)
@@ -110,16 +118,19 @@ class _BitsDelegate(QStyledItemDelegate):
     _OPTIONS = ["8", "16"]
 
     def createEditor(self, parent, option, index):
+        """Create the cell editor widget."""
         cb = QComboBox(parent)
         cb.addItems(self._OPTIONS)
         return cb
 
     def setEditorData(self, editor, index):
+        """Load the cell's value into the editor."""
         val = str(index.data() or "16")
         idx = editor.findText(val)
         editor.setCurrentIndex(idx if idx >= 0 else 1)
 
     def setModelData(self, editor, model, index):
+        """Validate and write the editor's value back into the model."""
         model.setData(index, editor.currentText())
 
 
@@ -129,6 +140,7 @@ class _SwapLineEdit(QLineEdit):
     """Accepts only '0' or '1'."""
 
     def keyPressEvent(self, event):
+        """Handle key presses in the cell editor."""
         ch = event.text()
         if ch and ord(ch[0]) >= 32:
             if ch not in ('0', '1'):
@@ -142,14 +154,17 @@ class _SwapLineEdit(QLineEdit):
 
 class _SwapDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
+        """Create the cell editor widget."""
         ed = _SwapLineEdit(parent)
         ed.setMaxLength(1)
         return ed
 
     def setEditorData(self, editor, index):
+        """Load the cell's value into the editor."""
         editor.setText(str(index.data() or "0"))
 
     def setModelData(self, editor, model, index):
+        """Validate and write the editor's value back into the model."""
         text = editor.text().strip()
         if text not in ('0', '1', ''):
             logger.warning("log_invalid_input", text)
@@ -165,6 +180,7 @@ class UsrGrpView(QWidget):
     def __init__(self, folder, gpin_groups, gpot_groups, tmp_pdf,
                  app_state, on_close_cb,
                  progress_begin_fn=None, progress_end_fn=None):
+        """Build the user-group view for the given folder."""
         super().__init__()
         self._folder         = folder
         self._gpin_groups    = [dict(g) for g in gpin_groups]
@@ -186,6 +202,7 @@ class UsrGrpView(QWidget):
     # ── UI build ──────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the view's widgets (preview and edit pages, buttons)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -249,6 +266,7 @@ class UsrGrpView(QWidget):
         root.addWidget(self._stack, 1)
 
     def _build_pdf_page(self):
+        """Build the PDF-preview page."""
         container = QWidget()
         lay = QVBoxLayout(container)
         lay.setContentsMargins(0, 0, 0, 0)
@@ -269,6 +287,7 @@ class UsrGrpView(QWidget):
         return container
 
     def _build_edit_page(self, t):
+        """Build the editable groups page."""
         self._tab_widget = QTabWidget()
         self._tab_widget.setDocumentMode(True)
 
@@ -283,6 +302,7 @@ class UsrGrpView(QWidget):
         return self._tab_widget
 
     def _make_table(self, groups, has_swap, t):
+        """Build the editable user-group table."""
         headers = [
             t.get("usrgrp_col_num",  "#"),
             t.get("usrgrp_col_name", "Name"),
@@ -343,6 +363,7 @@ class UsrGrpView(QWidget):
     # ── Toolbar actions ───────────────────────────────────────────────────────
 
     def _on_modifica(self):
+        """Switch to the edit page."""
         self._edit_mode = True
         self._stack.setCurrentIndex(1)
         self._btn_modifica.setVisible(False)
@@ -352,6 +373,7 @@ class UsrGrpView(QWidget):
         self._btn_export_groups.setVisible(True)
 
     def _on_back(self):
+        """Return to the preview page."""
         self._edit_mode = False
         self._stack.setCurrentIndex(0)
         self._btn_back.setVisible(False)
@@ -361,6 +383,7 @@ class UsrGrpView(QWidget):
         self._btn_export_excel.setVisible(True)
 
     def _on_export_pdf(self):
+        """Export the user-group PDF to a chosen path."""
         import shutil
         t = TRANSLATIONS[self._app_state.language]
         folder_name = os.path.basename(os.path.normpath(self._folder))
@@ -379,6 +402,7 @@ class UsrGrpView(QWidget):
             logger.warning("log_error_generic", str(exc))
 
     def _on_export_excel(self):
+        """Export the user-group data to an Excel file."""
         t = TRANSLATIONS[self._app_state.language]
         folder_name = os.path.basename(os.path.normpath(self._folder))
         default_name = f"UserGroup_{folder_name}.xlsx"
@@ -401,6 +425,7 @@ class UsrGrpView(QWidget):
             self._prog_end()
 
     def _on_export_groups(self):
+        """Export the edited groups to the controller files."""
         t = TRANSLATIONS[self._app_state.language]
         out_folder = QFileDialog.getExistingDirectory(
             self, t.get("dialog_export_folder", "Seleziona cartella di destinazione"),
@@ -459,6 +484,7 @@ class UsrGrpView(QWidget):
     # ── Language / theme ──────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the view for the new language."""
         try:
             t = TRANSLATIONS.get(lang, TRANSLATIONS["IT"])
             self._lbl_title.setText(
@@ -483,6 +509,7 @@ class UsrGrpView(QWidget):
             pass
 
     def _regen_pdf(self, lang):
+        """Regenerate the preview PDF for the given language."""
         try:
             from docs.usrgrp import generate_pdf
             generate_pdf(self._gpin_groups, self._gpot_groups,
@@ -494,6 +521,7 @@ class UsrGrpView(QWidget):
             logger.warning("log_error_generic", str(exc))
 
     def _update_headers(self, tbl, t, has_swap):
+        """Update the table headers for the current language."""
         if tbl is None:
             return
         hdrs = [
@@ -510,6 +538,7 @@ class UsrGrpView(QWidget):
                 item.setText(hdr)
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget { background:#231811; color:white; }
