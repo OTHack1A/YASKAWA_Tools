@@ -31,6 +31,7 @@ class _NameEdit(QLineEdit):
     _VALID_NAME_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,_-")
 
     def __init__(self, app_state, tool_row, on_name_changed=None, parent=None):
+        """Initialise the tool-name editor bound to a tool row."""
         super().__init__(parent)
         self._app_state        = app_state
         self._tool_row         = tool_row
@@ -42,6 +43,7 @@ class _NameEdit(QLineEdit):
             self.textChanged.connect(lambda txt: on_name_changed(bool(txt.strip())))
 
     def keyPressEvent(self, event):
+        """Reject keystrokes that are not valid name characters, logging the rejection."""
         char = event.text()
         if char and char.isprintable() and char not in self._VALID_NAME_CHARS:
             try:
@@ -52,10 +54,12 @@ class _NameEdit(QLineEdit):
         super().keyPressEvent(event)
 
     def focusInEvent(self, event):
+        """Remember the current value when the editor gains focus."""
         self._prev_val = self.text()
         super().focusInEvent(event)
 
     def focusOutEvent(self, event):
+        """On focus out, log the change if the value differs from the remembered one."""
         cur = self.text()
         if cur != self._prev_val:
             try:
@@ -78,6 +82,7 @@ class _NumericEdit(QLineEdit):
     )
 
     def __init__(self, app_state, tool_row=0, field_name="", parent=None):
+        """Initialise the numeric field editor bound to a tool row and field."""
         super().__init__(parent)
         self._app_state  = app_state
         self._tool_row   = tool_row
@@ -88,6 +93,7 @@ class _NumericEdit(QLineEdit):
         self.setPlaceholderText("0.000")
 
     def keyPressEvent(self, event):
+        """Accept only numeric input (converting comma to dot); reject and log others."""
         char = event.text()
         if char == ',':
             # Italian numpad decimal separator: silently convert to dot
@@ -103,10 +109,12 @@ class _NumericEdit(QLineEdit):
         super().keyPressEvent(event)
 
     def focusInEvent(self, event):
+        """Remember the current value when the editor gains focus."""
         self._prev_val = self.text()
         super().focusInEvent(event)
 
     def focusOutEvent(self, event):
+        """On focus out, log the change if the value differs from the remembered one."""
         cur = self.text()
         if cur != self._prev_val:
             try:
@@ -118,6 +126,7 @@ class _NumericEdit(QLineEdit):
         super().focusOutEvent(event)
 
     def float_value(self):
+        """Return the field's text parsed as a float (0.0 if blank or invalid)."""
         try:
             return float(self.text()) if self.text().strip("-. ") else 0.0
         except ValueError:
@@ -159,6 +168,7 @@ class ToolPanel(QWidget):
                       "5.000", "0.010", "0.010", "0.010")
 
     def __init__(self, app_state, on_close_cb, parent=None):
+        """Build the tool-configuration panel."""
         super().__init__(parent)
         self._app_state = app_state
         self._on_close  = on_close_cb
@@ -170,6 +180,7 @@ class ToolPanel(QWidget):
     # ── UI ────────────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the panel's widgets (per-tool rows, export/close buttons)."""
         t = TRANSLATIONS[self._app_state.language]
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 6, 8, 6)
@@ -267,10 +278,12 @@ class ToolPanel(QWidget):
         root.addWidget(self._table, 1)
 
     def _lock_row(self, row):
+        """Enable or disable editing of a tool row's fields."""
         for widget in self._rows[row]:
             widget.setEnabled(False)
 
     def _on_name_changed(self, text, edits):
+        """Handle a tool-name edit (enable that row's fields)."""
         enabled = bool(text.strip())
         for ed in edits:
             ed.setEnabled(enabled)
@@ -278,6 +291,7 @@ class ToolPanel(QWidget):
     # ── State persistence ─────────────────────────────────────────────────────
 
     def _load_state(self):
+        """Load the saved tool values into the panel."""
         try:
             if not os.path.isfile(_STATE_FILE):
                 return
@@ -295,6 +309,7 @@ class ToolPanel(QWidget):
             logger.warning("log_error_generic", str(exc))
 
     def save_state(self):
+        """Persist the current tool values."""
         try:
             os.makedirs(os.path.dirname(_STATE_FILE), exist_ok=True)
             tools = []
@@ -310,12 +325,14 @@ class ToolPanel(QWidget):
             logger.warning("log_error_generic", str(exc))
 
     def _handle_close(self):
+        """Save state and close the panel."""
         self.save_state()
         self._on_close()
 
     # ── Export ────────────────────────────────────────────────────────────────
 
     def _do_export(self):
+        """Export the configured tools to a TOOL.CND file in a chosen folder."""
         t = TRANSLATIONS[self._app_state.language]
         folder = QFileDialog.getExistingDirectory(
             self,
@@ -333,6 +350,7 @@ class ToolPanel(QWidget):
 
     @staticmethod
     def _fv(ed, spec):
+        """Parse an editor's text as a float per its spec (export helper; 0.0 if blank)."""
         try:
             v = float(ed.text()) if ed.text().strip("-. ") else 0.0
         except (ValueError, AttributeError):
@@ -375,6 +393,7 @@ class ToolPanel(QWidget):
     # ── Language update ───────────────────────────────────────────────────────
 
     def update_language(self, lang):
+        """Re-translate the panel for the new language."""
         t = TRANSLATIONS[lang]
         self._title_lbl.setText(t.get("tool_panel_title", "Tool"))
         self._btn_export.setText(t.get("tool_btn_export", "Esporta"))
@@ -390,6 +409,7 @@ class ToolPanel(QWidget):
     # ── Theme ─────────────────────────────────────────────────────────────────
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the panel."""
         if self._app_state.is_dark_mode:
             self.setStyleSheet("""
                 QWidget          { background:#231811; color:white; }

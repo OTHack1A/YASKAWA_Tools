@@ -18,12 +18,14 @@ class _Worker(QThread):
     error     = pyqtSignal(str)
 
     def __init__(self, folder: str, lang: str, pdf_path: str):
+        """Initialise the flowchart-generation worker with folder, language, and output path."""
         super().__init__()
         self._folder   = folder
         self._lang     = lang
         self._pdf_path = pdf_path
 
     def run(self):
+        """Worker thread body: build the flowcharts and PDF, emitting the result or an error."""
         try:
             from docs.flowchart import build_flowcharts, generate_pdf
             t = TRANSLATIONS.get(self._lang, TRANSLATIONS['IT'])
@@ -45,6 +47,7 @@ class FlowchartView(QWidget):
     """Main content panel for the Flowchart feature."""
 
     def __init__(self, folder: str, app_state, on_close_cb):
+        """Build the flowchart view for the given backup folder."""
         super().__init__()
         self._folder     = folder
         self._app_state  = app_state
@@ -62,6 +65,7 @@ class FlowchartView(QWidget):
     # ── UI build ──────────────────────────────────────────────────────────────
 
     def _build_ui(self):
+        """Build the view's widgets (PDF preview, navigation list, export buttons)."""
         t  = TRANSLATIONS.get(self._app_state.language, TRANSLATIONS['IT'])
         ly = QVBoxLayout(self)
         ly.setContentsMargins(8, 6, 8, 6)
@@ -131,6 +135,7 @@ class FlowchartView(QWidget):
     # ── Generation ─────────────────────────────────────────────────────────────
 
     def _start_generation(self):
+        """Start the background flowchart generation."""
         pdf_path = os.path.join(self._tmp_dir, 'flowchart.pdf')
         self._worker = _Worker(self._folder, self._app_state.language, pdf_path)
         self._worker.done.connect(self._on_generation_done)
@@ -138,6 +143,7 @@ class FlowchartView(QWidget):
         self._worker.start()
 
     def _on_generation_done(self, pdf_path: str, fcs: list):
+        """On success, load the PDF preview and populate the navigation list."""
         t = TRANSLATIONS.get(self._app_state.language, TRANSLATIONS['IT'])
         self._fcs      = fcs
         self._pdf_path = pdf_path
@@ -164,6 +170,7 @@ class FlowchartView(QWidget):
         self._btn_export_drawio.setEnabled(True)
 
     def _on_generation_error(self, msg: str):
+        """On failure, show the error message."""
         t = TRANSLATIONS.get(self._app_state.language, TRANSLATIONS['IT'])
         self._progress.setVisible(False)
         if msg == 'no_jbi':
@@ -175,6 +182,7 @@ class FlowchartView(QWidget):
 
     def _load_pdf(self, pdf_path: str):
         # Remove previous viewer widget if any
+        """Render the generated PDF into the preview area."""
         while self._viewer_layout.count():
             item = self._viewer_layout.takeAt(0)
             if item.widget():
@@ -206,6 +214,7 @@ class FlowchartView(QWidget):
     # ── Navigation ─────────────────────────────────────────────────────────────
 
     def _on_nav_clicked(self, item: QListWidgetItem):
+        """Scroll the preview to the flowchart selected in the navigation list."""
         page_idx = item.data(Qt.UserRole)
         if self._pdf_view is None or self._pdf_doc is None:
             return
@@ -221,6 +230,7 @@ class FlowchartView(QWidget):
     # ── Export ─────────────────────────────────────────────────────────────────
 
     def _on_export_pdf(self):
+        """Export the generated flowchart PDF to a user-chosen path."""
         t = TRANSLATIONS.get(self._app_state.language, TRANSLATIONS['IT'])
         dest, _ = QFileDialog.getSaveFileName(
             self, t.get('flowchart_btn_export_pdf', 'Esporta PDF'),
@@ -236,6 +246,7 @@ class FlowchartView(QWidget):
             logger.error('log_flowchart_error', str(exc))
 
     def _on_export_drawio(self):
+        """Export the flowcharts as a draw.io XML file to a user-chosen path."""
         t = TRANSLATIONS.get(self._app_state.language, TRANSLATIONS['IT'])
         dest, _ = QFileDialog.getSaveFileName(
             self, t.get('flowchart_btn_export_drawio', 'Esporta draw.io'),
@@ -253,6 +264,7 @@ class FlowchartView(QWidget):
     # ── Language / Theme ───────────────────────────────────────────────────────
 
     def update_language(self, lang: str):
+        """Re-translate the flowchart view for the new language."""
         t = TRANSLATIONS.get(lang, TRANSLATIONS['IT'])
         self._lbl_title.setText(t.get('flowchart_view_title', 'Flowchart'))
         self._btn_export_pdf.setText(t.get('flowchart_btn_export_pdf', 'Esporta PDF'))
@@ -277,6 +289,7 @@ class FlowchartView(QWidget):
                 pass
 
     def _apply_theme(self):
+        """Apply the current light/dark theme styling to the view."""
         dark = getattr(self._app_state, 'dark_mode', False)
         bg   = '#2b2b2b' if dark else '#ffffff'
         fg   = '#dddddd' if dark else '#1a1a1a'
