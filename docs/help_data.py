@@ -426,7 +426,7 @@ _KNOWN_DESC_IT = [
     "1 = Scambio comunicazione FTP",
     "Possibilità di sovrascrivere i Job da FTP",
     "Permette di fare in Remote le stesse cose che faccio in Play",
-    "Inclinazioni su asse X — dipende dalla macchina (ORION OMC)",
+    "Inclinazioni su asse X — inclinazione robot (modificabile solo da Yaskawa)",
     "Inclinazioni su asse Y — inclinazione robot (modificabile solo da Yaskawa)",
     "Micro di raccordo nelle movimentazioni in PL=1",
 ]
@@ -471,7 +471,7 @@ _KNOWN_DESC_EN = [
     "1 = FTP communication exchange",
     "Ability to overwrite Jobs via FTP",
     "Allows doing in Remote the same things as in Play mode",
-    "X-axis inclination — machine-dependent (ORION OMC)",
+    "X-axis inclination — robot tilt (modifiable only by Yaskawa)",
     "Y-axis inclination — robot tilt (modifiable only by Yaskawa)",
     "Micro-blend for movements at PL=1",
 ]
@@ -516,7 +516,7 @@ _KNOWN_DESC_FR = [
     "1 = Échange de communication FTP",
     "Possibilité d'écraser les Jobs depuis FTP",
     "Permet de faire en Remote les mêmes choses qu'en Play",
-    "Inclinaison sur l'axe X — dépend de la machine (ORION OMC)",
+    "Inclinaison sur l'axe X — inclinaison du robot (modifiable uniquement par Yaskawa)",
     "Inclinaison sur l'axe Y — inclinaison du robot (modifiable uniquement par Yaskawa)",
     "Micro-raccordement dans les mouvements en PL=1",
 ]
@@ -561,7 +561,7 @@ _KNOWN_DESC_ES = [
     "1 = Intercambio de comunicación FTP",
     "Posibilidad de sobrescribir Jobs desde FTP",
     "Permite hacer en Remote las mismas cosas que en Play",
-    "Inclinación en eje X — depende de la máquina (ORION OMC)",
+    "Inclinación en eje X — inclinación del robot (modificable solo por Yaskawa)",
     "Inclinación en eje Y — inclinación del robot (modificable solo por Yaskawa)",
     "Micro de enlace en movimientos en PL=1",
 ]
@@ -606,7 +606,7 @@ _KNOWN_DESC_UA = [
     "1 = Обмін зв'язком FTP",
     "Можливість перезаписувати завдання через FTP",
     "Дозволяє в Remote виконувати ті ж дії, що і в Play",
-    "Нахил по осі X — залежить від машини (ORION OMC)",
+    "Нахил по осі X — нахил робота (змінюється лише Yaskawa)",
     "Нахил по осі Y — нахил робота (змінюється лише Yaskawa)",
     "Мікро-сполучення для переміщень при PL=1",
 ]
@@ -651,7 +651,7 @@ _KNOWN_DESC_JA = [
     "1 = FTP通信交換",
     "FTP経由でジョブを上書き可能",
     "Remoteモードでもplayモードと同じ操作を許可",
-    "X軸の傾き — 機械依存（ORION OMC）",
+    "X軸の傾き — ロボット傾斜（Yaskawaのみ変更可）",
     "Y軸の傾き — ロボット傾斜（Yaskawaのみ変更可）",
     "PL=1での動作時のマイクロブレンド",
 ]
