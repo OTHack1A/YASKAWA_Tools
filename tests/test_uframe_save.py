@@ -116,6 +116,67 @@ def test_emit_all_writes_unconfigured_frames():
         assert abs(reparsed[7]["x"]) < 1e-6, "empty frame must have zero coords"
 
 
+def test_output_is_crlf_terminated():
+    """Every emitted line must end with CRLF.
+
+    Regression guard for the "teach pendant loads nothing" bug: reading the
+    template in text mode collapses CRLF->LF, so the writer used to emit LF-only
+    lines. An LF-only UFRAME.CND copies onto the controller without error but the
+    pendant parses it as empty (no names, no frames). The writer now forces CRLF.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        src = _make_template(d)
+        dest = os.path.join(d, "UFRAME.CND")
+        ok, err = write_uframe_cnd(dest, _FRAMES, src_path=src)
+        assert ok, f"expected success, got error: {err!r}"
+        raw = open(dest, "rb").read()
+        assert b"\r\n" in raw, "output must contain CRLF"
+        # No bare LF that is not part of a CRLF.
+        assert raw.replace(b"\r\n", b"").find(b"\n") == -1, "found bare LF line ending"
+
+
+def test_empty_name_has_no_trailing_space():
+    """An unnamed frame must emit ``///NAME`` with no trailing space.
+
+    A real YRC1000 export writes an unnamed frame as ``///NAME`` exactly. Our
+    earlier writer produced ``///NAME `` (trailing space), a 1-byte divergence
+    from a working export. Guard the exact byte form.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        src = _make_template(d)
+        dest = os.path.join(d, "UFRAME.CND")
+        frames = {
+            1: {"name": "", "x": 0.0, "y": 0.0, "z": 0.0,
+                "rx": 0.0, "ry": 0.0, "rz": 0.0},
+        }
+        ok, err = write_uframe_cnd(dest, frames, src_path=src, emit_all=True)
+        assert ok, f"expected success, got error: {err!r}"
+        raw = open(dest, "rb").read()
+        assert b"///NAME\r\n" in raw, "empty name must be '///NAME' with no trailing space"
+        assert b"///NAME \r\n" not in raw, "empty name must not have a trailing space"
+
+
+def test_real_reference_roundtrip_is_byte_identical():
+    """If the private real export tests/UFRAME.CND is present, a round-trip that
+    re-writes its own parsed frames must reproduce it byte-for-byte.
+
+    This file is gitignored (private controller data), so the test silently
+    skips in CI where it is absent.
+    """
+    ref = os.path.join(os.path.dirname(os.path.abspath(__file__)), "UFRAME.CND")
+    if not os.path.isfile(ref):
+        return  # private reference not available — skip silently
+    original = open(ref, "rb").read()
+    frames = {f["num"]: f for f in parse_uframe_cnd(ref)}
+    with tempfile.TemporaryDirectory() as d:
+        dest = os.path.join(d, "UFRAME.CND")
+        ok, err = write_uframe_cnd(dest, frames, src_path=ref)
+        assert ok, f"expected success, got error: {err!r}"
+        produced = open(dest, "rb").read()
+        assert produced == original, (
+            f"round-trip not byte-identical: {len(produced)} vs {len(original)} bytes")
+
+
 def test_missing_source_reports_error_cleanly():
     """A genuinely missing source returns (False, msg), never raises."""
     with tempfile.TemporaryDirectory() as d:
