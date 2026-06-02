@@ -549,7 +549,7 @@ _CANONICAL_UFRAME = [
 ]
 
 
-def write_uframe_cnd(filepath, frames_by_num, src_path=None):
+def write_uframe_cnd(filepath, frames_by_num, src_path=None, emit_all=False):
     """Write NAME and BUSER coords back to UFRAME.CND.
 
     frames_by_num: {num: {'name': str, 'x': float, 'y', 'z', 'rx', 'ry', 'rz'}}.
@@ -564,6 +564,13 @@ def write_uframe_cnd(filepath, frames_by_num, src_path=None):
     //UFRAME block (cloned from an existing block so the structure stays
     identical to the source) and emitted in numeric order — without this the
     teach pendant would load a file that silently omits the new frame.
+
+    ``emit_all`` controls whether *unconfigured* frames are written too. The
+    native YRC1000 backup lists only defined frames, so the default (False)
+    matches that format. When True, every frame number present in
+    ``frames_by_num`` is emitted (empty ones synthesised with a blank name and
+    zero BUSER) — an opt-in experiment for controllers that only pick up frames
+    already registered in the file.
     Returns (ok, error_msg)."""
     import re as _re
     src = src_path or filepath
@@ -664,7 +671,7 @@ def write_uframe_cnd(filepath, frames_by_num, src_path=None):
     for num, blk in blocks:
         final[num] = _update_block(num, blk) if num in frames_by_num else blk
     for num, fr in frames_by_num.items():
-        if num not in template_nums and _frame_is_configured(fr):
+        if num not in template_nums and (emit_all or _frame_is_configured(fr)):
             final[num] = _synthesize_block(num)
 
     out = list(preamble)

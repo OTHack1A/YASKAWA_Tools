@@ -45,3 +45,7 @@ test_params.pdf
 # Robot controller dump — dati privati, non devono MAI finire nella repo
 R1/
 r1/
+
+# Reference screenshots from the real teach pendant — privati, mai nella repo
+References/
+references/

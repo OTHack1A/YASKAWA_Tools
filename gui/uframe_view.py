@@ -5,7 +5,7 @@ import re
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                                QPushButton, QTableWidget, QTableWidgetItem,
                                QHeaderView, QFrame, QAbstractItemView,
-                               QStyledItemDelegate, QLineEdit)
+                               QStyledItemDelegate, QLineEdit, QCheckBox)
 from PySide6.QtCore import Qt, QRegularExpression
 from PySide6.QtGui import QRegularExpressionValidator
 
@@ -124,6 +124,12 @@ class UFrameView(QWidget):
         self._lbl_title.setStyleSheet("font-weight: bold; font-size: 10pt;")
         toolbar.addWidget(self._lbl_title)
         toolbar.addStretch()
+        self._chk_all = QCheckBox(t.get("uframe_emit_all", "Scrivi tutti e 63 i frame"))
+        self._chk_all.setToolTip(t.get(
+            "uframe_emit_all_tip",
+            "Esperimento: include anche i frame vuoti. "
+            "Il formato nativo Yaskawa elenca solo i frame definiti."))
+        toolbar.addWidget(self._chk_all)
         self._btn_save = QPushButton(t.get("uframe_btn_export", "Esporta"))
         self._btn_save.setFixedHeight(26)
         self._btn_save.clicked.connect(self._on_save)
@@ -240,7 +246,9 @@ class UFrameView(QWidget):
             except Exception:
                 continue
         try:
-            ok, err = write_uframe_cnd(uf_path, frames_by_num, src_path=src_path)
+            emit_all = bool(self._chk_all.isChecked())
+            ok, err = write_uframe_cnd(uf_path, frames_by_num, src_path=src_path,
+                                       emit_all=emit_all)
             if ok:
                 logger.info("log_uframe_saved")
                 try:
@@ -279,6 +287,11 @@ class UFrameView(QWidget):
             self._lbl_title.setText(t.get("uframe_view_title", "UF#() — YASKAWA YRC1000"))
             self._btn_save.setText(t.get("uframe_btn_export", "Esporta"))
             self._btn_close.setText(t.get("preview_close", "Chiudi"))
+            self._chk_all.setText(t.get("uframe_emit_all", "Scrivi tutti e 63 i frame"))
+            self._chk_all.setToolTip(t.get(
+                "uframe_emit_all_tip",
+                "Esperimento: include anche i frame vuoti. "
+                "Il formato nativo Yaskawa elenca solo i frame definiti."))
             name_hdr = t.get("tool_col_name", "Nome")
             hdrs = ["UF#", name_hdr,
                     "X [mm]", "Y [mm]", "Z [mm]",
