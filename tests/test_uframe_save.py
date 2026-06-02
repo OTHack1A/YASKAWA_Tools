@@ -93,6 +93,29 @@ def test_added_frame_absent_from_template_is_written():
         assert text.index("//UFRAME 1") < text.index("//UFRAME 2") < text.index("//UFRAME 5")
 
 
+def test_emit_all_writes_unconfigured_frames():
+    """With emit_all=True, even empty/unconfigured frames are written.
+
+    Opt-in experiment for controllers that only register frames already present
+    in the file. The default (emit_all=False) still omits empty frames.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        src = _make_template(d)  # template has only frames 1 and 2
+        dest = os.path.join(d, "UFRAME.CND")
+        frames = {
+            1: {"name": "NewName", "x": 10.0, "y": 20.0, "z": 30.0,
+                "rx": 1.0, "ry": 2.0, "rz": 3.0},
+            # frame 7 is empty/unconfigured — normally skipped, but emit_all forces it
+            7: {"name": "", "x": 0.0, "y": 0.0, "z": 0.0,
+                "rx": 0.0, "ry": 0.0, "rz": 0.0},
+        }
+        ok, err = write_uframe_cnd(dest, frames, src_path=src, emit_all=True)
+        assert ok, f"expected success, got error: {err!r}"
+        reparsed = {f["num"]: f for f in parse_uframe_cnd(dest)}
+        assert 7 in reparsed, "emit_all must write the empty frame 7"
+        assert abs(reparsed[7]["x"]) < 1e-6, "empty frame must have zero coords"
+
+
 def test_missing_source_reports_error_cleanly():
     """A genuinely missing source returns (False, msg), never raises."""
     with tempfile.TemporaryDirectory() as d:
