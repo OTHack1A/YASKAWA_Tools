@@ -80,24 +80,27 @@ _COMBO_HIDDEN_SS = (
 
 # ── Preview widget ─────────────────────────────────────────────────────────────
 
+# Panel colour codes → on-screen hue, matched to the real YRC1000 teach pendant.
+# Code 0 (BLACK) is a real, selectable colour — it must NOT be treated as "unset".
 _PREVIEW_COLORS = {
-    0: QColor('#101010'),
-    1: QColor('#888888'),
-    2: QColor('#bb2222'),
-    3: QColor('#22aa22'),
-    4: QColor('#cccc00'),
-    5: QColor('#2255cc'),
-    6: QColor('#e8e8e8'),
-    7: QColor('#00aacc'),
-    8: QColor('#cc00aa'),
+    0: QColor('#202020'),   # BLACK
+    1: QColor('#909090'),   # GRAY
+    2: QColor('#e02424'),   # RED
+    3: QColor('#18c818'),   # GREEN
+    4: QColor('#e0c000'),   # YELLOW
+    5: QColor('#2858e0'),   # BLUE
+    6: QColor('#f0f0f0'),   # WHITE
+    7: QColor('#20b8d0'),   # SKY BLUE / CYAN
+    8: QColor('#c020a0'),   # MAGENTA
 }
-_CELL_BG      = QColor('#707070')
-_CELL_BG_OFF  = QColor('#484848')
-_CELL_BORDER  = QColor('#404040')
-_TEXT_ON      = QColor('#ffffff')
-_TEXT_OFF     = QColor('#666666')
-_LCD_BG       = QColor('#001a00')
-_LCD_FG       = QColor('#00ee00')
+# Teach-pendant style: light 3D button face on a light blue-grey panel, dark text.
+_CELL_BG      = QColor('#b9bdc6')   # active button face (light grey, like the TP)
+_CELL_BG_OFF  = QColor('#cdd2db')   # empty slot (very light, almost flush with panel)
+_CELL_BORDER  = QColor('#6f747e')
+_TEXT_ON      = QColor('#101010')   # labels are dark on the light button face
+_TEXT_OFF     = QColor('#8a8f99')
+_LCD_BG       = QColor('#f4f4ec')   # counter window is a light LCD with dark digits
+_LCD_FG       = QColor('#101010')
 
 
 class _IFPanelPreview(QWidget):
@@ -134,7 +137,7 @@ class _IFPanelPreview(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setRenderHint(QPainter.TextAntialiasing)
-        bg = QColor('#232b38') if self._is_dark else QColor('#6a7080')
+        bg = QColor('#3a4250') if self._is_dark else QColor('#c3cdd9')
         painter.fillRect(self.rect(), bg)
         cw, ch = self._cell_dims()
         for idx, cid in enumerate(self._ids):
@@ -153,14 +156,19 @@ class _IFPanelPreview(QWidget):
             shape   = int(row[F_SHAPE])
             subtype = int(row[F_SUBTYPE])
             color_c = int(row[F_COLOR])
+            tcolor_c = int(row[F_TCOLOR])
             n1 = str(row[F_N1_L1])
             n2 = str(row[F_N2_L1])
             n3 = str(row[F_N3_L1])
         except Exception:
-            setup = shape = subtype = color_c = 0
+            setup = shape = subtype = color_c = tcolor_c = 0
             n1 = n2 = n3 = ''
 
+        # The configured panel colour drives the ring/border/symbol. Code 0 (BLACK)
+        # is a valid colour, so always resolve via the table — never fall back to a
+        # default just because the code happens to be 0.
         panel_col = _PREVIEW_COLORS.get(color_c, _PREVIEW_COLORS[0])
+        text_col  = _PREVIEW_COLORS.get(tcolor_c, _TEXT_ON)
         radius = max(3, w // 14)
 
         if not setup:
@@ -169,7 +177,7 @@ class _IFPanelPreview(QWidget):
             painter.drawRoundedRect(x, y, w, h, radius, radius)
             f = QFont(); f.setPointSize(max(5, h // 9))
             painter.setFont(f)
-            painter.setPen(QColor('#aaaacc'))
+            painter.setPen(_TEXT_OFF)
             painter.drawText(x + 3, y + 3, w - 6, h // 3, Qt.AlignLeft | Qt.AlignTop, cid)
             return
 
@@ -190,7 +198,7 @@ class _IFPanelPreview(QWidget):
             cx_  = x + w // 2
             cy_  = y + h // 2
             r_   = min(w, h) // 2 - sym_pad
-            ring = panel_col if color_c else QColor('#33dd33')
+            ring = panel_col
             painter.setBrush(QBrush(QColor(0, 0, 0, 0)))
             painter.setPen(QPen(ring, max(2, w // 22)))
             painter.drawEllipse(cx_ - r_, cy_ - r_, r_ * 2, r_ * 2)
@@ -202,16 +210,14 @@ class _IFPanelPreview(QWidget):
             painter.drawEllipse(cx_ - r_ + 2, cy_ - r_ + 2, r_ * 2 - 4, r_ * 2 - 4)
 
         elif shape in (1, 7):    # SQUARE 1 / SQUARE 2
-            if subtype == 2:     # indication only — outline only
-                col_ = panel_col if color_c else QColor('#5599ff')
-                painter.setBrush(QBrush(QColor(col_).lighter(30) if False else QColor(0,0,0,0)))
-                painter.setPen(QPen(col_, max(2, w // 22)))
+            if subtype == 2:     # indication only — coloured outline
+                painter.setBrush(QBrush(QColor(0, 0, 0, 0)))
+                painter.setPen(QPen(panel_col, max(2, w // 22)))
                 painter.drawRoundedRect(x + sym_pad, y + sym_pad,
                                         w - sym_pad*2, h - sym_pad*2, radius, radius)
-            else:                # push / hold — filled button
-                fill = panel_col if color_c else QColor('#2255bb')
-                painter.setBrush(QBrush(fill))
-                painter.setPen(QPen(fill.lighter(150), 1))
+            else:                # push / hold — light face with coloured frame
+                painter.setBrush(QBrush(_CELL_BG.lighter(108)))
+                painter.setPen(QPen(panel_col, max(2, w // 18)))
                 painter.drawRoundedRect(x + sym_pad, y + sym_pad,
                                         w - sym_pad*2, h - sym_pad*2, radius, radius)
 
@@ -221,7 +227,7 @@ class _IFPanelPreview(QWidget):
             bx_ = x + sym_pad
             by_ = y + (h - bh_) // 2
             painter.fillRect(bx_, by_, bw_, bh_, _LCD_BG)
-            painter.setPen(QPen(_LCD_FG, 1))
+            painter.setPen(QPen(_CELL_BORDER, 1))
             painter.drawRect(bx_, by_, bw_, bh_)
             f_lcd = QFont('Courier'); f_lcd.setPointSize(max(5, bh_ // 2))
             f_lcd.setBold(True)
@@ -231,7 +237,7 @@ class _IFPanelPreview(QWidget):
 
         elif shape == 14:        # SELECTOR SW
             mid_y = y + h // 2
-            sw_col = panel_col if color_c else QColor('#cc9922')
+            sw_col = panel_col
             trk_w = max(2, h // 10)
             painter.setPen(QPen(sw_col, trk_w))
             painter.drawLine(x + sym_pad, mid_y, x + w - sym_pad, mid_y)
@@ -241,20 +247,20 @@ class _IFPanelPreview(QWidget):
             painter.drawEllipse(x + sym_pad - knob_r // 2, mid_y - knob_r,
                                 knob_r * 2, knob_r * 2)
 
-        # Cell ID — small, top-left, always white
+        # Cell ID — small, top-left, muted dark (readable on the light face)
         f_id = QFont(); f_id.setPointSize(max(5, h // 9))
         painter.setFont(f_id)
-        painter.setPen(QColor('#ffffff'))
+        painter.setPen(_TEXT_OFF)
         painter.drawText(x + 3, y + 2, w - 6, h // 4, Qt.AlignLeft | Qt.AlignTop, cid)
 
-        # Name text — center, white
+        # Name text — center, in the configured TEXT COLOR
         name_parts = [p for p in [n1, n2, n3] if p]
         if name_parts:
             name_text = '\n'.join(name_parts)
             f_nm = QFont(); f_nm.setPointSize(max(6, h // 7))
             f_nm.setBold(True)
             painter.setFont(f_nm)
-            painter.setPen(_TEXT_ON)
+            painter.setPen(text_col)
             painter.drawText(x + 3, y + h // 4, w - 6, h * 3 // 4,
                              Qt.AlignCenter | Qt.TextWordWrap, name_text)
 
@@ -823,10 +829,12 @@ class IFPanelView(QWidget):
                         item.setText(cleaned)
                         tbl.blockSignals(False)
                     txt = cleaned
-                # SIGNAL validation: last digit cannot be 8 or 9
-                if txt and col == 12:
+                # SIGNAL validation: last digit cannot be 8 or 9. The signal-type
+                # combo sits in the column immediately left of the address column
+                # (IN type=11 for IN addr=12, OUT type=13 for OUT addr=14).
+                if txt and col in _ADDR_COLS:
                     io_cb = (self._tab_info.get(tab_idx, {})
-                             .get('combos', {}).get(r, {}).get(11))
+                             .get('combos', {}).get(r, {}).get(col - 1))
                     if io_cb and io_cb.currentData() == 1 and txt[-1] in ('8', '9'):
                         logger.warning("log_invalid_input",
                                        txt + " (SIGNAL: digit 8/9 invalid)")
