@@ -524,6 +524,13 @@ def _fmt_buser(upd):
             f"{upd['rx']:.4f},{upd['ry']:.4f},{upd['rz']:.4f}")
 
 
+def _name_line(name, eol):
+    """Build a ///NAME line. An empty name yields ``///NAME`` with no trailing
+    space, exactly as a real YRC1000 export writes an unnamed frame."""
+    nm = (name or '').strip()
+    return (f"///NAME {nm}{eol}" if nm else f"///NAME{eol}")
+
+
 def _frame_is_configured(fr):
     """True if a frame carries data worth writing (a name or any non-zero coord)."""
     if (fr.get('name') or '').strip():
@@ -536,7 +543,7 @@ def _frame_is_configured(fr):
 # clone. Matches the YRC1000 backup structure exactly so the file always loads.
 _CANONICAL_UFRAME = [
     "//UFRAME {num}",
-    "///NAME {name}",
+    "///NAME",
     "///TOOL 0",
     "///GROUP 1," + ",".join(["0"] * 31),
     "///BASICFRM 1,16,0",
@@ -615,7 +622,7 @@ def write_uframe_cnd(filepath, frames_by_num, src_path=None, emit_all=False):
             ln = blk[k]
             s  = ln.rstrip()
             if _re.match(r'^///NAME', s, _re.IGNORECASE):
-                res.append(f"///NAME {upd['name']}{_eol(ln)}")
+                res.append(_name_line(upd['name'], _eol(ln)))
                 k += 1
                 continue
             bm = _re.match(r'^(/+BUSER)', s, _re.IGNORECASE)
@@ -654,7 +661,7 @@ def write_uframe_cnd(filepath, frames_by_num, src_path=None, emit_all=False):
                 if k == 0:
                     res.append(f"//UFRAME {num}{_eol(ln)}")
                 elif _re.match(r'^///NAME', s, _re.IGNORECASE):
-                    res.append(f"///NAME {upd['name']}{_eol(ln)}")
+                    res.append(_name_line(upd['name'], _eol(ln)))
                 elif _re.match(r'^/+BUSER', s, _re.IGNORECASE):
                     bm = _re.match(r'^(/+BUSER)', s, _re.IGNORECASE)
                     res.append(f"{bm.group(1)} {coords}{_eol(ln)}")
@@ -663,8 +670,13 @@ def write_uframe_cnd(filepath, frames_by_num, src_path=None, emit_all=False):
             if not any(_re.match(r'^/+BUSER', l.rstrip(), _re.IGNORECASE) for l in res):
                 res.append(f"////BUSER {coords}{file_eol}")
             return res
-        return [tpl.format(num=num, name=upd['name'], coords=coords) + file_eol
-                for tpl in _CANONICAL_UFRAME]
+        out_lines = []
+        for tpl in _CANONICAL_UFRAME:
+            if tpl.startswith("///NAME"):
+                out_lines.append(_name_line(upd['name'], file_eol))
+            else:
+                out_lines.append(tpl.format(num=num, coords=coords) + file_eol)
+        return out_lines
 
     # ── Assemble: existing blocks (updated) + synthesised configured frames ─────
     final = {}
@@ -677,6 +689,13 @@ def write_uframe_cnd(filepath, frames_by_num, src_path=None, emit_all=False):
     out = list(preamble)
     for num in sorted(final):
         out.extend(final[num])
+
+    # The YRC1000 requires CRLF line endings. Reading the template in text mode
+    # collapses CRLF→LF, so without this every emitted line would be LF-only. An
+    # LF-only UFRAME.CND copies onto the controller without error but the teach
+    # pendant cannot parse it and loads an empty list (no names, no frames). Force
+    # CRLF on every line so the file matches a real, working controller export.
+    out = [ln.rstrip('\r\n') + '\r\n' for ln in out]
 
     try:
         dest_dir = os.path.dirname(os.path.abspath(filepath))
