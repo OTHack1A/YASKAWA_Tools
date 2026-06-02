@@ -49,3 +49,8 @@ r1/
 # Reference screenshots from the real teach pendant — privati, mai nella repo
 References/
 references/
+
+# Private test material: real controller exports + pendant screenshots — mai nella repo
+tests/*.png
+tests/*.CND
+tests/*.cnd

@@ -869,6 +869,16 @@ class IFPanelView(QWidget):
             col_names = self._col_headers(t)
             col_name = col_names[col] if col < len(col_names) else str(col)
             logger.info("log_ifpanel_cell_clicked", tab_idx + 1, cid, col_name)
+            # Warn when the user clicks an editable-type cell that is locked
+            # (e.g. an OUT Addr cell disabled because OUTPUT is off for this
+            # shape). The cell already refuses input; this just tells the user
+            # why nothing happens instead of leaving the log silent.
+            if col in _TEXT_COL_FIELD:
+                tbl = ti.get('table')
+                cell = tbl.item(row, col) if tbl else None
+                if cell is not None and not (cell.flags() & Qt.ItemIsEditable):
+                    logger.warning("log_ifpanel_cell_locked",
+                                   tab_idx + 1, cid, col_name)
         except Exception as exc:
             logger.error("log_error_generic", str(exc))
 
