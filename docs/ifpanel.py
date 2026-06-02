@@ -27,13 +27,18 @@ F_N2_L1     = 6   # str:  name word 2, language 1
 F_N3_L1     = 7   # str:  name word 3, language 1
 F_TCOLOR    = 8   # int:  text color code
 F_SECURITY  = 9   # int:  security level
-F_INTERLOCK = 10  # int:  interlock (0=PROHIBIT, 1=PERMIT)
-F_IN_TYPE   = 11  # int:  input signal type
-F_IN_ADDR   = 12  # int:  input address / variable index
-F_IN_SUB    = 13  # int:  input sub-field (always 0)
-F_OUT_TYPE  = 14  # int:  output signal type
-F_OUT_ADDR  = 15  # int:  output address / variable index
-F_OUT_SUB   = 16  # int:  output sub-field (always 0)
+# NOTE: the YRC1000 row has NO interlock field. Verified against the working R1
+# reference: every VALID cell places IN_TYPE at index 10 and IN_ADDR at 11.
+# A phantom interlock field here shifts IN/OUT by one and the controller rejects
+# the file with "syntax error 3110". F_INTERLOCK is kept (mapped to a reserved
+# slot, always written as 0) only so the GUI imports still resolve.
+F_IN_TYPE   = 10  # int:  input signal type
+F_IN_ADDR   = 11  # int:  input address / variable index
+F_IN_SUB    = 12  # int:  input sub-field (always 0)
+F_OUT_TYPE  = 13  # int:  output signal type
+F_OUT_ADDR  = 14  # int:  output address / variable index
+F_OUT_SUB   = 15  # int:  output sub-field (always 0)
+F_INTERLOCK = 16  # int:  reserved (always 0) — no real interlock field exists
 F_UNK1      = 17  # int:  reserved (always 0)
 F_UNK2      = 18  # int:  reserved (always 0)
 F_N1_L2     = 19  # str:  name word 1, language 2
@@ -42,11 +47,14 @@ F_N3_L2     = 21  # str:  name word 3, language 2
 F_UNK3      = 22  # int:  reserved (always 0)
 FIELD_COUNT = 23
 
+# Reserved fields the controller expects to be exactly 0 in every row.
+_RESERVED_FIELDS = frozenset({F_INTERLOCK, F_UNK1, F_UNK2, F_UNK3})
+
 _INT_FIELDS = frozenset({
-    F_SETUP, F_SHAPE, F_SUBTYPE, F_COLOR, F_TCOLOR, F_SECURITY, F_INTERLOCK,
+    F_SETUP, F_SHAPE, F_SUBTYPE, F_COLOR, F_TCOLOR, F_SECURITY,
     F_IN_TYPE, F_IN_ADDR, F_IN_SUB,
     F_OUT_TYPE, F_OUT_ADDR, F_OUT_SUB,
-    F_UNK1, F_UNK2, F_UNK3,
+    F_INTERLOCK, F_UNK1, F_UNK2, F_UNK3,
 })
 _STR_FIELDS = frozenset({F_N1_L1, F_N2_L1, F_N3_L1, F_N1_L2, F_N2_L2, F_N3_L2})
 
@@ -243,13 +251,32 @@ def write_ifpanel(filepath, panels):
             row = cells.get(cid)
             if not isinstance(row, (list, tuple)) or len(row) < FIELD_COUNT:
                 row = _empty_row(cid)
-            parts = [cid]
-            for j in range(1, FIELD_COUNT):
-                v = row[j] if j < len(row) else (0 if j in _INT_FIELDS else '')
-                if j in _INT_FIELDS:
-                    parts.append(str(_coerce(v, True, 0)))
+
+            # Materialize a normalized 23-field row, then enforce the structural
+            # invariants the controller requires (verified against R1). Doing this
+            # unconditionally means no GUI state can ever emit a row that fails to
+            # load: reserved/sub fields are forced to 0, and an address is cleared
+            # whenever its signal type is "none".
+            vals = []
+            for j in range(FIELD_COUNT):
+                if j == 0:
+                    vals.append(cid)
+                elif j in _INT_FIELDS:
+                    vals.append(_coerce(row[j] if j < len(row) else 0, True, 0))
                 else:
-                    parts.append(_san_text(v))
+                    vals.append(_san_text(row[j] if j < len(row) else ''))
+
+            for j in _RESERVED_FIELDS:
+                vals[j] = 0
+            vals[F_IN_SUB] = 0
+            vals[F_OUT_SUB] = 0
+            if vals[F_IN_TYPE] == 0:
+                vals[F_IN_ADDR] = 0
+            if vals[F_OUT_TYPE] == 0:
+                vals[F_OUT_ADDR] = 0
+
+            parts = [vals[0]] + [str(vals[j]) if j in _INT_FIELDS else vals[j]
+                                 for j in range(1, FIELD_COUNT)]
             lines.append(','.join(parts) + '\r\n')
     with open(filepath, 'w', encoding='latin-1', errors='replace', newline='') as fh:
         fh.writelines(lines)
