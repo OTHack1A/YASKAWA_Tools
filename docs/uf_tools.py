@@ -518,6 +518,37 @@ def generate_uf_excel(folder_path, output_path, lang="IT", log_fn=None):
         return 0, 0
 
 
+def _fmt_buser(upd):
+    """Format a frame dict's coords as a YRC1000 BUSER value (x/y/z .3f, r .4f)."""
+    return (f"{upd['x']:.3f},{upd['y']:.3f},{upd['z']:.3f},"
+            f"{upd['rx']:.4f},{upd['ry']:.4f},{upd['rz']:.4f}")
+
+
+def _frame_is_configured(fr):
+    """True if a frame carries data worth writing (a name or any non-zero coord)."""
+    if (fr.get('name') or '').strip():
+        return True
+    return any(abs(_safe_float(fr.get(k, 0.0))) > 1e-9
+               for k in ('x', 'y', 'z', 'rx', 'ry', 'rz'))
+
+
+# Canonical empty //UFRAME block used only when the template has no block to
+# clone. Matches the YRC1000 backup structure exactly so the file always loads.
+_CANONICAL_UFRAME = [
+    "//UFRAME {num}",
+    "///NAME {name}",
+    "///TOOL 0",
+    "///GROUP 1," + ",".join(["0"] * 31),
+    "///BASICFRM 1,16,0",
+    "///BASEP 0.000,0.000,0.000,0.0000,0.0000,0.0000",
+    "///PULSE",
+    "////RORG C000=0,0,0,0,0,0,0,0,0",
+    "////RXX C001=0,0,0,0,0,0,0,0,0",
+    "////RXY C002=0,0,0,0,0,0,0,0,0",
+    "////BUSER {coords}",
+]
+
+
 def write_uframe_cnd(filepath, frames_by_num, src_path=None):
     """Write NAME and BUSER coords back to UFRAME.CND.
 
@@ -527,6 +558,12 @@ def write_uframe_cnd(filepath, frames_by_num, src_path=None):
     omitted it defaults to ``filepath`` (in-place overwrite). This separation
     lets the user export to a brand-new destination that does not exist yet
     without hitting "No such file or directory".
+
+    Frames already present in the template are updated in place. A configured
+    frame the user added that is *not* in the template is synthesised as a full
+    //UFRAME block (cloned from an existing block so the structure stays
+    identical to the source) and emitted in numeric order — without this the
+    teach pendant would load a file that silently omits the new frame.
     Returns (ok, error_msg)."""
     import re as _re
     src = src_path or filepath
@@ -538,63 +575,101 @@ def write_uframe_cnd(filepath, frames_by_num, src_path=None):
 
     def _eol(ln):
         """Return the line ending (CRLF or LF) matching the given line."""
-        return '\r\n' if '\r' in ln else '\n'
+        return '\r\n' if ln.endswith('\r\n') else ('\n' if ln.endswith('\n') else file_eol)
 
-    out = []
-    i   = 0
-    while i < len(lines):
-        raw = lines[i]
-        s   = raw.rstrip()
-        m   = _re.match(r'^//UFRAME\s+(\d+)', s)
-        if m:
-            num = int(m.group(1))
-            out.append(raw)
+    # Dominant line ending of the source, used for any synthesised lines.
+    file_eol = '\r\n' if any(ln.endswith('\r\n') for ln in lines) else '\n'
+
+    # ── Split the template into a preamble and ordered //UFRAME blocks ──────────
+    preamble = []
+    blocks = []          # list of [num, [raw lines]]
+    i, n = 0, len(lines)
+    while i < n and not _re.match(r'^//UFRAME\s+\d+', lines[i].rstrip()):
+        preamble.append(lines[i])
+        i += 1
+    while i < n:
+        m = _re.match(r'^//UFRAME\s+(\d+)', lines[i].rstrip())
+        num = int(m.group(1))
+        blk = [lines[i]]
+        i += 1
+        while i < n and not _re.match(r'^//UFRAME\s+\d+', lines[i].rstrip()):
+            blk.append(lines[i])
             i += 1
-            if num not in frames_by_num:
-                # copy block as-is
-                while i < len(lines):
-                    if _re.match(r'^//UFRAME\s+\d+', lines[i].rstrip()):
-                        break
-                    out.append(lines[i])
-                    i += 1
-            else:
-                upd = frames_by_num[num]
-                coords = (f"{upd['x']:.3f},{upd['y']:.3f},{upd['z']:.3f},"
-                          f"{upd['rx']:.4f},{upd['ry']:.4f},{upd['rz']:.4f}")
-                buser_written = False
-                while i < len(lines):
-                    ln = lines[i]
-                    s2 = ln.rstrip()
-                    if _re.match(r'^//UFRAME\s+\d+', s2):
-                        break
-                    if _re.match(r'^///NAME', s2, _re.IGNORECASE):
-                        out.append(f"///NAME {upd['name']}{_eol(ln)}")
-                        i += 1
-                        continue
-                    bm = _re.match(r'^(/+BUSER)', s2, _re.IGNORECASE)
-                    if bm:
-                        prefix = bm.group(1)
-                        out.append(f"{prefix} {coords}{_eol(ln)}")
-                        buser_written = True
-                        i += 1
-                        # skip next line if it contains only coords (split format)
-                        if i < len(lines):
-                            nxt = lines[i].rstrip()
-                            if nxt and not nxt.startswith('/') and ',' in nxt:
-                                try:
-                                    [float(v) for v in nxt.split(',')[:6]]
-                                    i += 1  # skip old coord line
-                                except ValueError:
-                                    pass
-                        continue
-                    out.append(ln)
-                    i += 1
-                if not buser_written:
-                    # append BUSER if not present in original
-                    out.append(f"////BUSER {coords}\r\n")
-        else:
-            out.append(raw)
-            i += 1
+        blocks.append([num, blk])
+
+    template_nums = {num for num, _ in blocks}
+
+    def _update_block(num, blk):
+        """Rewrite an existing block's NAME and BUSER from frames_by_num[num]."""
+        upd    = frames_by_num[num]
+        coords = _fmt_buser(upd)
+        res, buser_written, k = [], False, 0
+        while k < len(blk):
+            ln = blk[k]
+            s  = ln.rstrip()
+            if _re.match(r'^///NAME', s, _re.IGNORECASE):
+                res.append(f"///NAME {upd['name']}{_eol(ln)}")
+                k += 1
+                continue
+            bm = _re.match(r'^(/+BUSER)', s, _re.IGNORECASE)
+            if bm:
+                res.append(f"{bm.group(1)} {coords}{_eol(ln)}")
+                buser_written = True
+                k += 1
+                # skip a following bare coord line (split format)
+                if k < len(blk):
+                    nxt = blk[k].rstrip()
+                    if nxt and not nxt.startswith('/') and ',' in nxt:
+                        try:
+                            [float(v) for v in nxt.split(',')[:6]]
+                            k += 1
+                        except ValueError:
+                            pass
+                continue
+            res.append(ln)
+            k += 1
+        if not buser_written:
+            res.append(f"////BUSER {coords}{file_eol}")
+        return res
+
+    # Prototype for synthesising absent frames: clone the last template block so
+    # all the controller-specific sub-fields (GROUP/BASICFRM/PULSE/RORG…) match.
+    prototype = blocks[-1][1] if blocks else None
+
+    def _synthesize_block(num):
+        """Build a full //UFRAME block for a frame missing from the template."""
+        upd    = frames_by_num[num]
+        coords = _fmt_buser(upd)
+        if prototype:
+            res = []
+            for k, ln in enumerate(prototype):
+                s = ln.rstrip()
+                if k == 0:
+                    res.append(f"//UFRAME {num}{_eol(ln)}")
+                elif _re.match(r'^///NAME', s, _re.IGNORECASE):
+                    res.append(f"///NAME {upd['name']}{_eol(ln)}")
+                elif _re.match(r'^/+BUSER', s, _re.IGNORECASE):
+                    bm = _re.match(r'^(/+BUSER)', s, _re.IGNORECASE)
+                    res.append(f"{bm.group(1)} {coords}{_eol(ln)}")
+                else:
+                    res.append(ln)
+            if not any(_re.match(r'^/+BUSER', l.rstrip(), _re.IGNORECASE) for l in res):
+                res.append(f"////BUSER {coords}{file_eol}")
+            return res
+        return [tpl.format(num=num, name=upd['name'], coords=coords) + file_eol
+                for tpl in _CANONICAL_UFRAME]
+
+    # ── Assemble: existing blocks (updated) + synthesised configured frames ─────
+    final = {}
+    for num, blk in blocks:
+        final[num] = _update_block(num, blk) if num in frames_by_num else blk
+    for num, fr in frames_by_num.items():
+        if num not in template_nums and _frame_is_configured(fr):
+            final[num] = _synthesize_block(num)
+
+    out = list(preamble)
+    for num in sorted(final):
+        out.extend(final[num])
 
     try:
         dest_dir = os.path.dirname(os.path.abspath(filepath))

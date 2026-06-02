@@ -17,6 +17,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from docs.ifpanel import (  # noqa: E402
     PANEL_COUNT, FIELD_COUNT, cell_ids, parse_ifpanel, write_ifpanel,
     _empty_panel, _empty_row,
+    F_SETUP, F_SHAPE, F_SUBTYPE, F_COLOR, F_N1_L1, F_N2_L1, F_TCOLOR,
+    F_IN_TYPE, F_IN_ADDR, F_IN_SUB, F_OUT_TYPE, F_OUT_ADDR, F_OUT_SUB,
+    F_INTERLOCK, F_UNK1, F_UNK2, F_UNK3, F_N1_L2, F_N2_L2,
 )
 
 CELLS_PER_PANEL = len(cell_ids())          # 32
@@ -97,6 +100,68 @@ def test_too_few_panels_are_padded(tmp_path):
     out = tmp_path / "IFPANEL.DAT"
     write_ifpanel(str(out), panels)
     _assert_structure(out.read_bytes())
+
+
+def test_valid_cell_field_layout(tmp_path):
+    """A VALID button cell must place IN/OUT at the R1-verified field indices.
+
+    Regression guard for the "syntax error 3110" bug: a phantom interlock field
+    shifted IN_TYPE/IN_ADDR/OUT_TYPE/OUT_ADDR by one column, so the controller
+    rejected the file. The exported row must read exactly like an R1 VALID cell:
+        1A,1,7,1,0,Apri,Pinza,,0,1,1,10143,0,1,10143,0,0,0,0,Apri,Pinza,,0
+    (security is auto-managed; here we only assert IN/OUT positions + reserved 0).
+    """
+    panels = [_empty_panel(i) for i in range(PANEL_COUNT)]
+    row = _empty_row("1A")
+    row[F_SETUP] = 1
+    row[F_SHAPE] = 7
+    row[F_SUBTYPE] = 1
+    row[F_COLOR] = 0
+    row[F_N1_L1] = "Apri"
+    row[F_N2_L1] = "Pinza"
+    row[F_TCOLOR] = 0
+    row[F_INTERLOCK] = 1          # stale/invalid value — must be forced to 0
+    row[F_IN_TYPE] = 1
+    row[F_IN_ADDR] = 10143
+    row[F_OUT_TYPE] = 1
+    row[F_OUT_ADDR] = 10143
+    row[F_N1_L2] = "Apri"
+    row[F_N2_L2] = "Pinza"
+    panels[0]["cells"]["1A"] = row
+
+    out = tmp_path / "IFPANEL.DAT"
+    write_ifpanel(str(out), panels)
+    line = next(l for l in out.read_bytes().decode("latin-1").split("\r\n")
+                if l.startswith("1A,"))
+    f = line.split(",")
+
+    assert f[F_IN_TYPE] == "1",      f"IN_TYPE must be at index {F_IN_TYPE}: {line!r}"
+    assert f[F_IN_ADDR] == "10143",  f"IN_ADDR must be at index {F_IN_ADDR}: {line!r}"
+    assert f[F_IN_SUB] == "0",       f"IN_SUB must be 0 at index {F_IN_SUB}: {line!r}"
+    assert f[F_OUT_TYPE] == "1",     f"OUT_TYPE must be at index {F_OUT_TYPE}: {line!r}"
+    assert f[F_OUT_ADDR] == "10143", f"OUT_ADDR must be at index {F_OUT_ADDR}: {line!r}"
+    assert f[F_OUT_SUB] == "0",      f"OUT_SUB must be 0 at index {F_OUT_SUB}: {line!r}"
+    for idx in (F_INTERLOCK, F_UNK1, F_UNK2, F_UNK3):
+        assert f[idx] == "0", f"reserved field {idx} must be 0 (was {f[idx]!r}): {line!r}"
+
+
+def test_zero_io_type_clears_address(tmp_path):
+    """If a signal type is 'none' (0), its address must be forced to 0."""
+    panels = [_empty_panel(i) for i in range(PANEL_COUNT)]
+    row = _empty_row("1A")
+    row[F_SETUP] = 1
+    row[F_IN_TYPE] = 0
+    row[F_IN_ADDR] = 999       # orphan address with no type
+    row[F_OUT_TYPE] = 0
+    row[F_OUT_ADDR] = 888
+    panels[0]["cells"]["1A"] = row
+    out = tmp_path / "IFPANEL.DAT"
+    write_ifpanel(str(out), panels)
+    line = next(l for l in out.read_bytes().decode("latin-1").split("\r\n")
+                if l.startswith("1A,"))
+    f = line.split(",")
+    assert f[F_IN_ADDR] == "0",  f"orphan IN_ADDR must be cleared: {line!r}"
+    assert f[F_OUT_ADDR] == "0", f"orphan OUT_ADDR must be cleared: {line!r}"
 
 
 def test_roundtrip_against_r1_reference():
