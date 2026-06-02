@@ -12,7 +12,7 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from docs.uf_tools import write_uframe_cnd  # noqa: E402
+from docs.uf_tools import write_uframe_cnd, parse_uframe_cnd  # noqa: E402
 
 _TEMPLATE = (
     "//UFRAME 1\r\n"
@@ -58,6 +58,39 @@ def test_inplace_overwrite_still_works():
         assert ok, f"expected success, got error: {err!r}"
         text = open(src, encoding="latin-1").read()
         assert "NewName" in text
+
+
+def test_added_frame_absent_from_template_is_written():
+    """A configured frame the user added (not in the template) must be emitted.
+
+    Regression guard for the "teach pendant loads nothing" bug: the GUI passes
+    all 63 frame numbers, but the old writer only updated //UFRAME blocks already
+    present in the source, so any newly configured frame was silently dropped.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        src = _make_template(d)  # template has only frames 1 and 2
+        dest = os.path.join(d, "UFRAME.CND")
+        frames = {
+            1: {"name": "NewName", "x": 10.0, "y": 20.0, "z": 30.0,
+                "rx": 1.0, "ry": 2.0, "rz": 3.0},
+            # frame 5 is NOT in the template — must be synthesised
+            5: {"name": "Added", "x": 111.0, "y": 222.0, "z": 333.0,
+                "rx": 4.0, "ry": 5.0, "rz": 6.0},
+            # frame 7 is empty/unconfigured — must be skipped (no bloat)
+            7: {"name": "", "x": 0.0, "y": 0.0, "z": 0.0,
+                "rx": 0.0, "ry": 0.0, "rz": 0.0},
+        }
+        ok, err = write_uframe_cnd(dest, frames, src_path=src)
+        assert ok, f"expected success, got error: {err!r}"
+        reparsed = {f["num"]: f for f in parse_uframe_cnd(dest)}
+        assert 5 in reparsed, "added frame 5 was dropped"
+        assert reparsed[5]["name"] == "Added"
+        assert abs(reparsed[5]["x"] - 111.0) < 1e-6
+        assert abs(reparsed[5]["rz"] - 6.0) < 1e-6
+        assert 7 not in reparsed, "empty unconfigured frame should not be written"
+        # frames are emitted in numeric order
+        text = open(dest, encoding="latin-1").read()
+        assert text.index("//UFRAME 1") < text.index("//UFRAME 2") < text.index("//UFRAME 5")
 
 
 def test_missing_source_reports_error_cleanly():

@@ -18,7 +18,7 @@ from docs.ifpanel import (
     F_IN_TYPE, F_IN_ADDR, F_IN_SUB, F_OUT_TYPE, F_OUT_ADDR, F_OUT_SUB,
     F_UNK1, F_UNK2, F_N1_L2, F_N2_L2, F_N3_L2, F_UNK3,
     SHAPE_OPTIONS, SUBTYPE_BY_SHAPE, SUBTYPE_FALLBACK,
-    COLOR_OPTIONS, IO_TYPE_OPTIONS, SECURITY_OPTIONS, INTERLOCK_OPTIONS, SETUP_OPTIONS,
+    COLOR_OPTIONS, IO_TYPE_OPTIONS, SECURITY_OPTIONS, SETUP_OPTIONS,
     cell_ids, _empty_row, resolve_options,
 )
 
@@ -66,7 +66,6 @@ _COMBO_COL_FIELD = {
     4:  F_COLOR,
     8:  F_TCOLOR,
     9:  F_SECURITY,
-    10: F_INTERLOCK,
     11: F_IN_TYPE,
     13: F_OUT_TYPE,
 }
@@ -426,7 +425,6 @@ class IFPanelView(QWidget):
         setup_opts   = resolve_options(SETUP_OPTIONS,     t)
         color_opts   = resolve_options(COLOR_OPTIONS,     t)
         io_type_opts = resolve_options(IO_TYPE_OPTIONS,   t)
-        ilock_opts   = resolve_options(INTERLOCK_OPTIONS, t)
         shape_opts   = resolve_options(SHAPE_OPTIONS,     t)
 
         for r, cid in enumerate(ids):
@@ -443,6 +441,9 @@ class IFPanelView(QWidget):
 
             # Auto-set SECURITY = 1 (Editing Mode) — hidden from UI
             row[F_SECURITY] = 1
+            # No interlock field exists in the YRC1000 row — force its reserved
+            # slot to 0 (the column is hidden) so it can never break the load.
+            row[F_INTERLOCK] = 0
 
             # Col 0: Cell ID (read-only)
             ci = QTableWidgetItem(cid)
@@ -501,13 +502,8 @@ class IFPanelView(QWidget):
             # Col 9: Security — hidden, auto-managed (no combo created)
             tbl.setItem(r, 9, QTableWidgetItem(""))
 
-            # Col 10: Interlock
-            il_cb = self._make_combo(ilock_opts, _int(F_INTERLOCK))
-            il_cb.currentIndexChanged.connect(
-                lambda _, ri=r, ti=tab_idx, cid_=cid, cb=il_cb:
-                    self._combo_changed(ti, ri, cid_, F_INTERLOCK, cb))
-            tbl.setCellWidget(r, 10, il_cb)
-            self._wire_combo_log(il_cb, tab_idx, cid, 10)
+            # Col 10: Interlock — hidden, no real field (reserved, kept at 0)
+            tbl.setItem(r, 10, QTableWidgetItem(""))
 
             # Col 11: Input type
             it_cb = self._make_combo(io_type_opts, _int(F_IN_TYPE))
@@ -539,7 +535,7 @@ class IFPanelView(QWidget):
 
             combos[r] = {
                 1: s_cb, 2: sh_cb, 3: sub_cb, 4: pc_cb,
-                8: tc_cb, 10: il_cb, 11: it_cb, 13: ot_cb,
+                8: tc_cb, 11: it_cb, 13: ot_cb,
             }
 
         # Stretch all columns to fill available horizontal space
@@ -554,7 +550,8 @@ class IFPanelView(QWidget):
 
         lay.addWidget(tbl, 1)
 
-        tbl.setColumnHidden(9, True)   # SECURITY — hidden, auto-set to Editing Mode
+        tbl.setColumnHidden(9, True)    # SECURITY — hidden, auto-set to Editing Mode
+        tbl.setColumnHidden(10, True)   # INTERLOCK — hidden, no real field (kept 0)
 
         self._tab_info[tab_idx] = {
             'name_l1':     name_l1,
@@ -982,7 +979,6 @@ class IFPanelView(QWidget):
         setup_opts   = resolve_options(SETUP_OPTIONS,     t)
         color_opts   = resolve_options(COLOR_OPTIONS,     t)
         io_type_opts = resolve_options(IO_TYPE_OPTIONS,   t)
-        ilock_opts   = resolve_options(INTERLOCK_OPTIONS, t)
         shape_opts   = resolve_options(SHAPE_OPTIONS,     t)
 
         _opts_by_col = {
@@ -990,7 +986,6 @@ class IFPanelView(QWidget):
             2:  shape_opts,
             4:  color_opts,
             8:  color_opts,
-            10: ilock_opts,
             11: io_type_opts,
             13: io_type_opts,
         }
