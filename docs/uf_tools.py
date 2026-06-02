@@ -518,13 +518,20 @@ def generate_uf_excel(folder_path, output_path, lang="IT", log_fn=None):
         return 0, 0
 
 
-def write_uframe_cnd(filepath, frames_by_num):
+def write_uframe_cnd(filepath, frames_by_num, src_path=None):
     """Write NAME and BUSER coords back to UFRAME.CND.
+
     frames_by_num: {num: {'name': str, 'x': float, 'y', 'z', 'rx', 'ry', 'rz'}}.
+    The original file is used as the template; ``src_path`` is where it is read
+    from and ``filepath`` is where the result is written. When ``src_path`` is
+    omitted it defaults to ``filepath`` (in-place overwrite). This separation
+    lets the user export to a brand-new destination that does not exist yet
+    without hitting "No such file or directory".
     Returns (ok, error_msg)."""
     import re as _re
+    src = src_path or filepath
     try:
-        with open(filepath, 'r', encoding='latin-1', errors='replace') as f:
+        with open(src, 'r', encoding='latin-1', errors='replace') as f:
             lines = f.readlines()
     except OSError as exc:
         return False, str(exc)
@@ -590,6 +597,9 @@ def write_uframe_cnd(filepath, frames_by_num):
             i += 1
 
     try:
+        dest_dir = os.path.dirname(os.path.abspath(filepath))
+        if dest_dir and not os.path.isdir(dest_dir):
+            os.makedirs(dest_dir, exist_ok=True)
         with open(filepath, 'w', encoding='latin-1', newline='') as f:
             f.writelines(out)
         return True, None

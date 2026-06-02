@@ -199,23 +199,57 @@ def parse_ifpanel(filepath):
 
 # ── Write ─────────────────────────────────────────────────────────────────────
 
+def _san_text(val, max_len=TEXT_MAX_LEN):
+    """Sanitize a text field for the fixed CSV structure.
+
+    Commas (the field delimiter) and CR/LF (the line delimiter) are stripped so
+    that no user-entered text can ever shift the field/line count — that is the
+    single thing the teach pendant will not tolerate. The result is also clamped
+    to ``max_len`` characters.
+    """
+    s = '' if val is None else str(val)
+    s = s.replace('\r', '').replace('\n', '').replace(',', '')
+    return s.strip()[:max_len]
+
+
 def write_ifpanel(filepath, panels):
-    """Write panels list → IFPANEL.DAT (latin-1, CRLF line endings)."""
+    """Write panels list → IFPANEL.DAT (latin-1, CRLF line endings).
+
+    The output structure is fixed and self-correcting regardless of the input:
+    exactly ``PANEL_COUNT`` panels, each with a header line, a name line, and the
+    32 cell rows in canonical order, every data row carrying exactly
+    ``FIELD_COUNT`` comma-separated values. Text is sanitized so user input can
+    never corrupt the row/field count. This guarantees the file loads on the
+    teach pendant.
+    """
     ids = cell_ids()
+
+    # Normalize the panel list to exactly PANEL_COUNT entries.
+    panels = list(panels or [])
+    if len(panels) > PANEL_COUNT:
+        panels = panels[:PANEL_COUNT]
+    while len(panels) < PANEL_COUNT:
+        panels.append(_empty_panel(len(panels)))
+
     lines = []
     for i, panel in enumerate(panels):
+        panel = panel or {}
+        cells = panel.get('cells') or {}
         lines.append(f'//IFPANEL {i + 1}\r\n')
-        n1 = str(panel.get('name_l1', '')).strip()
-        n2 = str(panel.get('name_l2', n1)).strip()
+        n1 = _san_text(panel.get('name_l1', ''))
+        n2 = _san_text(panel.get('name_l2', n1))
         lines.append(f'///NAME {n1},{n2}\r\n')
         for cid in ids:
-            row = panel['cells'].get(cid)
-            if row is None or len(row) < FIELD_COUNT:
+            row = cells.get(cid)
+            if not isinstance(row, (list, tuple)) or len(row) < FIELD_COUNT:
                 row = _empty_row(cid)
-            parts = []
-            for j in range(FIELD_COUNT):
-                v = row[j] if j < len(row) else ('' if j in _STR_FIELDS else 0)
-                parts.append(str(v))
+            parts = [cid]
+            for j in range(1, FIELD_COUNT):
+                v = row[j] if j < len(row) else (0 if j in _INT_FIELDS else '')
+                if j in _INT_FIELDS:
+                    parts.append(str(_coerce(v, True, 0)))
+                else:
+                    parts.append(_san_text(v))
             lines.append(','.join(parts) + '\r\n')
     with open(filepath, 'w', encoding='latin-1', errors='replace', newline='') as fh:
         fh.writelines(lines)

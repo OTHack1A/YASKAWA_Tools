@@ -213,7 +213,8 @@ class UFrameView(QWidget):
 
         # Ask the user where to export. Default to the source folder and keep the
         # exact UFRAME.CND filename so the file can be re-imported on the robot.
-        default_path = os.path.join(self._folder, UFRAME_FILE)
+        src_path = os.path.join(self._folder, UFRAME_FILE)
+        default_path = src_path
         uf_path, _ = QFileDialog.getSaveFileName(
             self, t.get("uframe_btn_export", "Esporta"), default_path,
             "Controller Data (*.CND);;All Files (*)")
@@ -239,7 +240,7 @@ class UFrameView(QWidget):
             except Exception:
                 continue
         try:
-            ok, err = write_uframe_cnd(uf_path, frames_by_num)
+            ok, err = write_uframe_cnd(uf_path, frames_by_num, src_path=src_path)
             if ok:
                 logger.info("log_uframe_saved")
                 try:
@@ -250,11 +251,24 @@ class UFrameView(QWidget):
                     logger.warning("log_error_generic", str(exc))
             else:
                 logger.error("log_uframe_error", err or "unknown error")
+                self._show_error(t, err or "unknown error")
         except Exception as exc:
             try:
                 logger.error("log_uframe_error", str(exc))
             except Exception:
                 pass
+            self._show_error(t, str(exc))
+
+    def _show_error(self, t, msg):
+        """Surface an export failure to the user, not just the logs."""
+        try:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(
+                self,
+                t.get("uframe_view_title", "UF#()"),
+                t.get("uframe_export_failed", "Export failed:") + f"\n{msg}")
+        except Exception:
+            pass
 
     # ── Language / theme ──────────────────────────────────────────────────────
 

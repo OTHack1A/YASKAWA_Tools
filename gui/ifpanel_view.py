@@ -919,6 +919,13 @@ class IFPanelView(QWidget):
                 logger.warning("log_error_generic", str(exc))
         except Exception as exc:
             logger.error("log_error_generic", str(exc))
+            try:
+                from PySide6.QtWidgets import QMessageBox
+                QMessageBox.critical(
+                    self, t.get("menu_ifpanel", "IFPanel"),
+                    t.get("ifpanel_export_failed", "IFPanel export failed:") + f"\n{exc}")
+            except Exception:
+                pass
 
     def _sync_group_names(self, tab_idx):
         """Sync one tab's group-name fields into the panel data."""
