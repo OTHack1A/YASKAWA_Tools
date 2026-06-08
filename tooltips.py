@@ -148,6 +148,15 @@ TIPS = {
         "UA": "Зчитує та редагує IFPANEL.DAT (операторська панель)",
         "JA": "IFPANEL.DAT（オペレーターパネル）の読み書き",
     },
+    "action_solo_punti": {
+        "IT": "Modifica i punti (P) di VAR.DAT ed esporta solo la parte punti",
+        "EN": "Edits the position points (P) in VAR.DAT, exporting only the points",
+        "FR": "Modifie les points (P) de VAR.DAT et n'exporte que la partie points",
+        "DE": "Bearbeitet die Punkte (P) in VAR.DAT und exportiert nur die Punkte",
+        "ES": "Edita los puntos (P) de VAR.DAT y exporta solo la parte de puntos",
+        "UA": "Редагує точки (P) у VAR.DAT і експортує лише частину точок",
+        "JA": "VAR.DATの位置ポイント（P）を編集し、ポイント部分のみエクスポート",
+    },
 
     # ── Documentazione menu actions ──────────────────────────────────────────
     "action_flowchart": {

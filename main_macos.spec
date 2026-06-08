@@ -32,7 +32,9 @@ a = Analysis(
         'docs.ipnet',
         'docs.ifpanel',
         'docs.flowchart',
+        'docs.posvar',
         'gui.ifpanel_view',
+        'gui.posvar_view',
         'gui.flowchart_view',
         'gui.help_view',
         'gui.uf_tools_view',
@@ -110,7 +112,9 @@ exe = EXE(
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
-    disable_windowed_traceback=False,
+    # Security (v1.1.6): suppress the windowed traceback dialog so an unhandled
+    # exception never exposes internal stack/paths to the end user.
+    disable_windowed_traceback=True,
     argv_emulation=False,
     target_arch=None,   # None = architettura nativa del runner (arm64 su macos-latest)
     codesign_identity=None,
@@ -125,7 +129,7 @@ app = BUNDLE(
     info_plist={
         'NSHighResolutionCapable': True,
         'LSMinimumSystemVersion': '12.0',
-        'CFBundleShortVersionString': '1.1.5',
+        'CFBundleShortVersionString': '1.1.6',
         'CFBundleVersion': '1',
         'NSHumanReadableCopyright': 'Copyright © 2025 0THack1A',
     },
