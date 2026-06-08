@@ -32,7 +32,9 @@ a = Analysis(
         'docs.ipnet',
         'docs.ifpanel',
         'docs.flowchart',
+        'docs.posvar',
         'gui.ifpanel_view',
+        'gui.posvar_view',
         'gui.flowchart_view',
         'gui.help_view',
         'gui.uf_tools_view',
@@ -110,7 +112,9 @@ exe = EXE(
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
-    disable_windowed_traceback=False,
+    # Security (v1.1.6): suppress the windowed traceback dialog so an unhandled
+    # exception never exposes internal stack/paths to the end user.
+    disable_windowed_traceback=True,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,

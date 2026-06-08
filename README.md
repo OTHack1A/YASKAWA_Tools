@@ -25,9 +25,10 @@ A dedicated module handles **DriveWizard Industrial** project files (`.YDWIProj`
 - **GA500 inverter report** — parses `.YDWIProj` files from DriveWizard Industrial and produces a parameter report with descriptions for all 600+ GA500 parameters.
 - **INFORM flowchart** — generates a graphical flowchart (PDF + draw.io XML) of the execution flow of any JBI job.
 - **Interactive IF Panel viewer** — visualises the 15 IF panel pages with colours and I/O assignments.
+- **Points-only editor** — edits the position variables (`P`) of `VAR.DAT` in a single table (number-prefix search, all slots listed so free slots can become new points) and exports them back, rewriting only the changed point lines while preserving the rest of the file byte-for-byte.
 - **Multilingual interface** — seven languages: English (default), Italian, French, German, Spanish, Ukrainian, and Japanese. The language can be switched at runtime from the top bar.
 - **Rotating log** — all user actions, generated files, warnings, and errors are written to a rotating log file (`YASKAWAToolsLog.log`, max 10 MB). The log is also visible in a collapsible panel inside the application.
-- **Password protection** — access is guarded by an Argon2id-hashed password with a persistent lockout (3 failed attempts → 5-minute block) and a constant-time verification floor to prevent timing attacks.
+- **Password protection** — access is guarded by an Argon2id-hashed password (hardened cost: 128 MiB memory, time 4, parallelism 4) with a persistent lockout (3 failed attempts → 5-minute block) and a constant-time verification floor to prevent timing attacks. The lockout state file is HMAC-integrity-protected and fails closed if tampered with, so an in-progress lockout cannot be cleared by editing it.
 
 ---
 
@@ -36,9 +37,13 @@ A dedicated module handles **DriveWizard Industrial** project files (`.YDWIProj`
 - Windows 10 / 11 (64-bit)
 - Python 3.10 or later (only needed if running from source)
 
-Install Python dependencies:
+Install Python dependencies into a **clean virtual environment** (dependencies are
+pinned to exact versions in `requirements.txt` so a build never silently pulls a
+newer or compromised release):
 
 ```bash
+python -m venv .venv
+.venv\Scripts\activate          # Windows  (source .venv/bin/activate on *nix)
 pip install -r requirements.txt
 ```
 
@@ -54,13 +59,33 @@ python main.py
 
 ## Building the executable
 
-The project uses [PyInstaller](https://pyinstaller.org). Build with:
+The project uses [PyInstaller](https://pyinstaller.org). Build from the same clean
+virtual environment (add `-r requirements-dev.txt` for the build/test tooling):
 
 ```bash
+pip install -r requirements-dev.txt
 pyinstaller main.spec
 ```
 
-The output is placed in `dist/YaskawaTools.exe` — a single self-contained executable, no installation required.
+The output is a single self-contained executable in `dist/YaskawaTools.exe` — no
+installation required. Use `--distpath <dir>` to redirect the output folder.
+
+**Reproducible / supply-chain-hardened build (recommended for releases):** generate
+a hash-locked file and enforce it (see the header of `requirements.txt`), then
+**code-sign** the result so the binary is tamper-evident and trusted by the OS:
+
+```powershell
+# Windows (Authenticode + RFC-3161 timestamp):
+.\scripts\sign_windows.ps1 -Thumbprint <cert-thumbprint>
+```
+
+```bash
+# macOS (codesign + optional notarization):
+IDENTITY="Developer ID Application: <Name> (<TEAMID>)" ./scripts/sign_macos.sh dist/YaskawaTools.app
+```
+
+Signing material (`*.pfx` / `*.p12`, identities, passwords) must **never** be
+committed — it is excluded by `.gitignore`.
 
 ---
 
@@ -76,12 +101,17 @@ yaskawa-tools/
 ├── tooltips.py          UI tooltips registry
 ├── translations.py      Multilingual strings (IT / EN / FR / DE / ES / UA / JA)
 │
-├── docs/                PDF generation modules (one per section)
+├── docs/                PDF generation modules (one per section); the YRC1000 /
+│                        GA500 parameter reference is embedded in docs/help_data.py
 ├── gui/                 PySide6 GUI components
 ├── assets/              Logo, icon, profile image
-├── references/          YRC1000 parameter reference and GA500 parameter list
-└── dist/                Pre-built executable (YaskawaTools.exe)
+├── scripts/             Release helpers (code-signing for Windows / macOS)
+└── tests/               Unit tests
 ```
+
+> Build output (`dist/`), private controller dumps (`R1/`, `references/`) and
+> signing material are intentionally **not** tracked — see `.gitignore`.
+> Binaries are distributed via [Releases](../../releases).
 
 ---
 
