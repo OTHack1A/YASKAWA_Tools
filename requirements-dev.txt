@@ -1,0 +1,11 @@
+# Build- and test-only dependencies (not shipped in the application).
+# Install on top of requirements.txt inside the same clean virtual environment.
+#
+#     pip install -r requirements.txt -r requirements-dev.txt
+#
+# Note: the obsolete `typing` backport, if present in the environment, breaks
+# PyInstaller and must be removed:  pip uninstall -y typing
+
+-r requirements.txt
+pyinstaller==6.20.0
+pytest==9.0.3

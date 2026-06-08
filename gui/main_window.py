@@ -2448,6 +2448,7 @@ class MainWindow(QMainWindow):
         self._ifpanel_view   = None
         self._flowchart_view = None
         self._usrgrp_view    = None
+        self._posvar_view    = None
         self._work_folder    = self._load_work_folder()
         self.setup_ui()
         self.apply_theme()
@@ -2605,6 +2606,13 @@ class MainWindow(QMainWindow):
         self.action_ifpanel.triggered.connect(lambda: logger.info("log_btn_pressed", self.action_ifpanel.text()))
         self.action_ifpanel.triggered.connect(self.on_ifpanel)
         self.menu_genera.addAction(self.action_ifpanel)
+
+        self.action_solo_punti = QAction(
+            TRANSLATIONS[self.app_state.language].get("menu_solo_punti", "Solo punti"), self)
+        self.action_solo_punti.triggered.connect(
+            lambda: logger.info("log_btn_pressed", self.action_solo_punti.text()))
+        self.action_solo_punti.triggered.connect(self.on_solo_punti)
+        self.menu_genera.addAction(self.action_solo_punti)
 
         # Documentation Menu
         self.menu_documentation = self.menu_bar.addMenu(TRANSLATIONS[self.app_state.language]["menu_documentation"])
@@ -2892,7 +2900,7 @@ class MainWindow(QMainWindow):
                       self._drive_view, self._ga500_view, self._uf_tools_view,
                       self._ipnet_view, self._compila_view, self._uframe_view,
                       self._tool_panel, self._help_view, self._ifpanel_view,
-                      self._flowchart_view, self._usrgrp_view]:
+                      self._flowchart_view, self._usrgrp_view, self._posvar_view]:
             try:
                 if panel is not None and hasattr(panel, '_apply_theme'):
                     panel._apply_theme()
@@ -2920,6 +2928,7 @@ class MainWindow(QMainWindow):
         self.action_tool.setText(t["menu_tool"])
         self.action_uf.setText(t["menu_uf"])
         self.action_ifpanel.setText(t.get("menu_ifpanel", "IFPanel"))
+        self.action_solo_punti.setText(t.get("menu_solo_punti", "Solo punti"))
         self.menu_documentation.setTitle(t["menu_documentation"])
         self.action_flowchart.setText(t.get("menu_flowchart", "Flowchart"))
         self.action_targhetta.setText(t["menu_targhetta"])
@@ -2988,6 +2997,8 @@ class MainWindow(QMainWindow):
             self._flowchart_view.update_language(lang)
         if self._usrgrp_view is not None:
             self._usrgrp_view.update_language(lang)
+        if self._posvar_view is not None:
+            self._posvar_view.update_language(lang)
         # Refresh tooltips so they match the new language labels.
         # Clear any previously set tooltips first; _apply_tooltips skips
         # widgets that already have a tooltip, so a clear-then-reapply is
@@ -3516,6 +3527,14 @@ class MainWindow(QMainWindow):
             self._ifpanel_view = None
             logger.info("log_ifpanel_closed")
 
+    def _close_posvar_view(self):
+        """Close the position-variable editor and return to the welcome screen."""
+        if self._posvar_view is not None:
+            self._posvar_view.setParent(None)
+            self._posvar_view.deleteLater()
+            self._posvar_view = None
+            logger.info("log_posvar_closed")
+
     def _close_flowchart_view(self):
         """Close the flowchart view and return to the welcome screen."""
         if self._flowchart_view is not None:
@@ -3672,6 +3691,9 @@ class MainWindow(QMainWindow):
         if self._usrgrp_view is not None:
             logger.info("log_panel_replaced", t.get("menu_usrgrp", "User Group"))
             self._close_usrgrp_view()
+        if self._posvar_view is not None:
+            logger.info("log_panel_replaced", t.get("menu_solo_punti", "Solo punti"))
+            self._close_posvar_view()
         self._show_welcome()
 
     def on_tool(self):
@@ -3738,6 +3760,35 @@ class MainWindow(QMainWindow):
             logger.info("log_ifpanel_opened")
         except Exception as exc:
             logger.error("log_error_generic", str(exc))
+
+    def on_solo_punti(self):
+        """Open the position-variable (VAR.DAT ///P) editor."""
+        from PySide6.QtWidgets import QFileDialog
+        t = TRANSLATIONS[self.app_state.language]
+        folder = self._work_folder or QFileDialog.getExistingDirectory(
+            self, t["select_folder"], "", QFileDialog.Option.ShowDirsOnly)
+        if not folder:
+            logger.info("log_cancelled", t.get("menu_solo_punti", "Solo punti"))
+            return
+        from docs.posvar import VAR_FILE
+        if not os.path.isfile(os.path.join(folder, VAR_FILE)):
+            logger.warning("log_file_not_found", VAR_FILE)
+            return
+        self._close_all_panels()
+        self._hide_welcome()
+        try:
+            from gui.posvar_view import PosVarView
+            view = PosVarView(folder, self.app_state,
+                              on_close_cb=self._close_posvar_view)
+            self._posvar_view = view
+            self.content_area.layout().addWidget(view)
+            logger.info("log_posvar_opened")
+        except Exception as exc:
+            # Loading/parsing failed — log it and fall back to the welcome
+            # screen so the window is never left blank or frozen.
+            logger.error("log_error_generic", str(exc))
+            self._posvar_view = None
+            self._show_welcome()
 
     def on_aiuto(self):
         """Open the in-app help/guide view."""

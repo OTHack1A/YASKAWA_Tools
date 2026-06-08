@@ -12,10 +12,19 @@ dist/*.log
 build/
 *.spec.bak
 
-# Compiled binaries — distribuiti via GitHub Releases, non nella repo
+# Compiled binaries & build output — distributed via GitHub Releases, never in the repo.
+# Ignore the whole dist/ tree (covers dist/Melo/ and any other --distpath target).
+/dist/
 dist/YaskawaTools
 dist/YaskawaTools.exe
 dist/YaskawaTools.dmg
+
+# Local AI scratch notes / nested helper repo — private, never in the repo
+AI-noters/
+
+# Code-signing material must never be committed
+*.pfx
+*.p12
 
 # Environment
 .env

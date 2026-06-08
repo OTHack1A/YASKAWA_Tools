@@ -1,10 +1,26 @@
-PySide6
-reportlab
-openpyxl
-pypdf
-Pillow
-psutil
-argon2-cffi
-langdetect
-deep-translator
-beautifulsoup4
+# Runtime dependencies — PINNED to exact, known-good versions.
+#
+# Versions are pinned (==) so a build never silently pulls a newer — or
+# compromised — release of a dependency or its transitive packages. For a
+# fully reproducible, supply-chain-hardened build, install inside a CLEAN
+# virtual environment and enforce hashes:
+#
+#     python -m venv .venv
+#     .venv\Scripts\activate            # Windows  (source .venv/bin/activate on *nix)
+#     pip install -r requirements.txt
+#
+# To regenerate a hash-locked file (recommended for releases):
+#     pip install pip-tools
+#     pip-compile --generate-hashes --output-file requirements.lock requirements.txt
+#     pip install --require-hashes -r requirements.lock
+
+PySide6==6.11.1
+reportlab==4.5.1
+openpyxl==3.1.5
+pypdf==6.12.2
+Pillow==10.4.0
+psutil==6.1.0
+argon2-cffi==25.1.0
+langdetect==1.0.9
+deep-translator==1.11.4
+beautifulsoup4==4.12.3

@@ -1,6 +1,9 @@
 import os
 import json
 import time
+import hmac
+import hashlib
+import platform
 from datetime import datetime, timedelta
 
 # We'll use argon2 for verification
@@ -10,8 +13,16 @@ try:
 except ImportError:
     pass
 
-# This is the actual hash for the application password
-HASHED_PASSWORD = "$argon2id$v=19$m=65536,t=3,p=4$XMYMlSmfuYIDDafY+x4XdA$9JgU8+PyzMXCPue+awTDZg5ErrK5/TJO/jaaoWtnnjE"
+# Argon2id hash of the application password ("YaskawaTool"), generated with the
+# hardened cost parameters below (128 MiB memory, time 4, parallelism 4) to slow
+# offline brute-force attempts.
+HASHED_PASSWORD = "$argon2id$v=19$m=131072,t=4,p=4$YiZqOaPdyG4RCE7pyVdJBQ$ZCfjbacGimi2X8InPGaalM+H/VchQdE3auqcHnSLKMs"
+
+# Cost parameters used when (re)hashing.  Argon2 verify() reads the parameters
+# embedded in the stored hash, so these only need to match for rehash checks.
+_ARGON2_TIME_COST   = 4
+_ARGON2_MEMORY_COST = 131072   # 128 MiB
+_ARGON2_PARALLELISM = 4
 
 # ── Persistent lockout state ──────────────────────────────────────────────────
 #
@@ -30,26 +41,86 @@ try:
 except Exception:
     _STATE_FILE = "auth_state.json"
 
+# ── Tamper-evident state integrity ────────────────────────────────────────────
+#
+# The lockout state is integrity-protected with an HMAC keyed by an embedded
+# pepper bound to the local machine name.  A file that is present but carries a
+# missing/invalid signature is treated as tampering and *fails closed* (it is
+# read back as an active lockout), so an attacker cannot clear an in-progress
+# lockout — or transplant a forged state from another machine — by editing the
+# JSON.  (Deleting the file resets to a first-run state, which remains an
+# inherent limit of any purely local, server-less lockout.)
+_STATE_PEPPER = b"YaskawaTools/auth-state/v1"
+
+
+def _state_key():
+    """Derive the HMAC key from the embedded pepper bound to this machine."""
+    node = (platform.node() or os.environ.get("COMPUTERNAME")
+            or os.environ.get("HOSTNAME") or "").encode("utf-8", "replace")
+    return hmac.new(_STATE_PEPPER, node, hashlib.sha256).digest()
+
+
+def _state_sig(attempts, lockout_until):
+    """Return the HMAC-SHA256 signature over the canonical state fields."""
+    raw = json.dumps({"attempts": attempts, "lockout_until": lockout_until},
+                     sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hmac.new(_state_key(), raw, hashlib.sha256).hexdigest()
+
+
+def _locked_default():
+    """Fail-closed state: behave as if a fresh lockout window were active."""
+    return {
+        "attempts": _MAX_ATTEMPTS,
+        "lockout_until": (datetime.now() + timedelta(minutes=_LOCKOUT_MIN)).isoformat(),
+    }
+
 
 def _load_state():
-    """Load the persisted lockout state (attempt count + lockout expiry), returning safe defaults on any error."""
+    """Load the persisted lockout state, verifying its HMAC.
+
+    A missing file yields first-run defaults; a present-but-tampered file
+    (bad/absent signature) fails closed via :func:`_locked_default`.
+    """
     try:
         with open(_STATE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-        return {
-            "attempts":      int(data.get("attempts", 0) or 0),
-            "lockout_until": data.get("lockout_until") or None,
-        }
+    except FileNotFoundError:
+        return {"attempts": 0, "lockout_until": None}
     except Exception:
         return {"attempts": 0, "lockout_until": None}
+    try:
+        attempts = int(data.get("attempts", 0) or 0)
+        lockout_until = data.get("lockout_until") or None
+        sig = data.get("sig")
+        if not sig or not hmac.compare_digest(
+                str(sig), _state_sig(attempts, lockout_until)):
+            # Present but tampered/forged → fail closed, but persist a real
+            # signed lockout so it counts down and self-heals after the window
+            # (rather than locking out forever on a one-off file corruption).
+            locked = _locked_default()
+            _save_state(locked)
+            return locked
+    except Exception:
+        # Malformed but present → treat conservatively as tampering.
+        locked = _locked_default()
+        _save_state(locked)
+        return locked
+    return {"attempts": attempts, "lockout_until": lockout_until}
 
 
 def _save_state(state):
-    """Atomically persist the lockout state to disk via a temp file and os.replace."""
+    """Atomically persist the signed lockout state via a temp file + os.replace."""
     try:
+        attempts = int(state.get("attempts", 0) or 0)
+        lockout_until = state.get("lockout_until") or None
+        payload = {
+            "attempts": attempts,
+            "lockout_until": lockout_until,
+            "sig": _state_sig(attempts, lockout_until),
+        }
         tmp = _STATE_FILE + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(state, f)
+            json.dump(payload, f)
         os.replace(tmp, _STATE_FILE)
     except Exception:
         pass
@@ -87,8 +158,12 @@ def record_success():
 
 
 def get_hasher():
-    """Return a configured Argon2 PasswordHasher instance."""
-    return PasswordHasher()
+    """Return a PasswordHasher configured with the hardened cost parameters."""
+    return PasswordHasher(
+        time_cost=_ARGON2_TIME_COST,
+        memory_cost=_ARGON2_MEMORY_COST,
+        parallelism=_ARGON2_PARALLELISM,
+    )
 
 
 def verify_password(password):

@@ -18,8 +18,11 @@ Do **not** open a public issue with password requests.
 
 Security notes you should know:
 - After **3 wrong attempts** the app locks for **5 minutes**. The lockout is
-  persistent — closing and reopening the app does **not** reset it.
-- The password is checked against an Argon2id hash; the plaintext is never stored.
+  persistent — closing and reopening the app does **not** reset it, and the
+  lockout file is integrity-protected so editing it to bypass the wait fails
+  closed (it stays locked).
+- The password is checked against an **Argon2id** hash with hardened cost
+  parameters (128 MiB memory); the plaintext is never stored.
 
 ---
 
@@ -117,6 +120,15 @@ Some views are editable and can write controller-format files back out:
 - **Names** — fill an Excel template with variable/I/O names and generate the
   corresponding `*.DAT` files.
 - **Compile** — write values into `VAR.DAT`.
+- **Points only** (*Genera → Solo punti*) — edit the position variables (`P`) of
+  `VAR.DAT` in one table and export them back. Every `P` slot is listed (defined
+  **and** free), so you can turn any free slot into a new point by setting its
+  **Type** (PULSE/RECTAN). On export only the point lines you changed are
+  rewritten — the rest of `VAR.DAT` is preserved byte-for-byte so the file still
+  reloads on the controller. The export is silent: result and any error go to the
+  **log panel**, with no pop-up. The search box matches a point number as a
+  *prefix* (typing `p10` finds `P10`, `P100`, `P1000`, …) or any point name; the
+  "Only defined points" checkbox is **off by default** so the whole table shows.
 
 ### GA500 inverter report
 Open a **DriveWizard Industrial** project file (`.YDWIProj`) to parse the GA500
