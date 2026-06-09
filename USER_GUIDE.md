@@ -90,7 +90,7 @@ Each section can also be produced on its own:
 
 | Section | Source files | What you get |
 |---|---|---|
-| Nameplate (Targhetta) | `SYSTEM.SYS` | Robot model, software version, axis configuration |
+| Nameplate | `SYSTEM.SYS` | Robot model, software version, axis configuration |
 | Panel | `PANELBOX.LOG` | Operator-panel configuration |
 | Jobs / INFORM | `*.JBI` | Job code listing + instruction tables |
 | Parameters | `*.PRM` (`ALL.PRM`, …) | Parameter tables with current values |
@@ -120,7 +120,7 @@ Some views are editable and can write controller-format files back out:
 - **Names** — fill an Excel template with variable/I/O names and generate the
   corresponding `*.DAT` files.
 - **Compile** — write values into `VAR.DAT`.
-- **Points only** (*Genera → Solo punti*) — edit the position variables (`P`) of
+- **Points only** (*Generate → Points only*) — edit the position variables (`P`) of
   `VAR.DAT` in one table and export them back. Every `P` slot is listed (defined
   **and** free), so you can turn any free slot into a new point by setting its
   **Type** (PULSE/RECTAN). On export only the point lines you changed are
