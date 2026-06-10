@@ -9,10 +9,11 @@
 #     .venv\Scripts\activate            # Windows  (source .venv/bin/activate on *nix)
 #     pip install -r requirements.txt
 #
-# To regenerate a hash-locked file (recommended for releases):
-#     pip install pip-tools
-#     pip-compile --generate-hashes --output-file requirements.lock requirements.txt
-#     pip install --require-hashes -r requirements.lock
+# CI installs from requirements.lock (hash-locked, cross-platform, generated
+# from requirements-dev.txt which includes this file). To regenerate it after
+# changing any pin below:
+#     uv pip compile requirements-dev.txt --universal --python-version 3.11 \
+#        --generate-hashes -o requirements.lock
 
 PySide6==6.11.1
 reportlab==4.5.1

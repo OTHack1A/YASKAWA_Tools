@@ -144,6 +144,35 @@ shasum -a 256 YaskawaTools.dmg
 
 ---
 
+## Code signing policy
+
+Windows binaries published under [Releases](../../releases) are code-signed.
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by
+[SignPath Foundation](https://signpath.org).
+
+**Team roles** (single-maintainer project):
+
+| Role | Member |
+|---|---|
+| Committers | [0THack1A](https://github.com/OTHack1A) |
+| Reviewers | [0THack1A](https://github.com/OTHack1A) |
+| Approvers | [0THack1A](https://github.com/OTHack1A) |
+
+All releases are built from this repository by the public
+[GitHub Actions workflow](.github/workflows/build.yml) and require manual
+approval by an Approver before signing.
+
+**Privacy statement:** this program will not transfer any information to other
+networked systems unless specifically requested by the user. The only network
+feature is the optional *attachment translation* function, which — only when
+the user explicitly runs it — sends the text extracted from the selected PDF
+attachment to the Google Translate service ([deep-translator](https://pypi.org/project/deep-translator/));
+a warning is written to the in-app log before any data leaves the machine.
+Everything else (parsing, PDF generation, logging) is performed locally.
+
+---
+
 ## Supported file formats (input)
 
 | File | Content |

@@ -13,10 +13,11 @@ try:
 except ImportError:
     pass
 
-# Argon2id hash of the application password ("YaskawaTool"), generated with the
-# hardened cost parameters below (128 MiB memory, time 4, parallelism 4) to slow
-# offline brute-force attempts.
-HASHED_PASSWORD = "$argon2id$v=19$m=131072,t=4,p=4$YiZqOaPdyG4RCE7pyVdJBQ$ZCfjbacGimi2X8InPGaalM+H/VchQdE3auqcHnSLKMs"
+# Argon2id hash of the application password, generated with the hardened cost
+# parameters below (128 MiB memory, time 4, parallelism 4) to slow offline
+# brute-force attempts.  The plaintext password is intentionally NOT recorded
+# anywhere in this repository.
+HASHED_PASSWORD = "$argon2id$v=19$m=131072,t=4,p=4$zUX2pOCWCtqhhd89hd04Vg$6RBfbuBHmEjcabOSblFJt7/9FaixTtm4jxtCWsQrqt0"
 
 # Cost parameters used when (re)hashing.  Argon2 verify() reads the parameters
 # embedded in the stored hash, so these only need to match for rehash checks.
