@@ -140,6 +140,20 @@ def lockout_remaining_seconds():
     return max(0, int(delta))
 
 
+def attempts_remaining():
+    """Return how many login attempts remain before a lockout is armed.
+
+    Returns 0 while a lockout window is active.  Otherwise it is
+    ``_MAX_ATTEMPTS`` minus the persisted failure count, so the UI can show
+    an accurate count that survives application restarts.
+    """
+    if lockout_remaining_seconds() > 0:
+        return 0
+    state = _load_state()
+    used = int(state.get("attempts", 0) or 0)
+    return max(0, _MAX_ATTEMPTS - used)
+
+
 def record_failure():
     """Increment failure counter; arm a lockout window when threshold reached."""
     state = _load_state()
