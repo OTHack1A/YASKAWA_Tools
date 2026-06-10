@@ -105,6 +105,9 @@ exe = EXE(
     a.datas,
     [],
     name='YaskawaTools',
+    # ProductName/ProductVersion metadata — required by SignPath Foundation
+    # (and good practice for SmartScreen reputation tracking).
+    version='version_info.txt',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
