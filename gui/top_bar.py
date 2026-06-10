@@ -66,6 +66,9 @@ class TopBar(QWidget):
         self.theme_btn = QPushButton("🌙" if not self.app_state.is_dark_mode else "☀")
         self.theme_btn.setFixedSize(45, 45)
         self.theme_btn.setCursor(Qt.PointingHandCursor)
+        # Mouse-only: keep the bar's buttons out of the keyboard focus chain so
+        # Tab/arrow navigation can never toggle the theme accidentally.
+        self.theme_btn.setFocusPolicy(Qt.NoFocus)
         self.theme_btn.setStyleSheet("""
             QPushButton {
                 border: 2px solid rgba(255, 255, 255, 0.8);
@@ -98,6 +101,9 @@ class TopBar(QWidget):
             btn = QPushButton(lang)
             btn.setFixedSize(45, 45)
             btn.setCursor(Qt.PointingHandCursor)
+            # Mouse-only: arrow keys between sibling buttons would otherwise
+            # switch the UI language without any confirmation (see v1.1.7 QA).
+            btn.setFocusPolicy(Qt.NoFocus)
             btn.setToolTip(_LANG_NAMES.get(lang, lang))
             btn.clicked.connect(lambda checked, l=lang: self.set_language(l))
             layout.addWidget(btn)
