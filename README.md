@@ -120,12 +120,12 @@ yaskawa-tools/
 The binaries are published under [Releases](../../releases). Verify the file you
 downloaded matches the SHA-256 published for that release before running it.
 
-**SHA-256 for the latest release (update these on every release):**
+**SHA-256 for the latest release (v1.1.7 — update these on every release):**
 
 ```
-YaskawaTools.exe (Windows) --> sha256:<paste-here>
-YaskawaTools     (Linux)   --> sha256:<paste-here>
-YaskawaTools.dmg (macOS)   --> sha256:<paste-here>
+YaskawaTools.exe (Windows) --> sha256:4c3e65d57ebf59466c1be0ca2e9f67f021472735131f273b0b1aa8b256693511
+YaskawaTools     (Linux)   --> sha256:16d0dd1c1fdbe4ca52e9e5335f09012d44f329e102134478984760afed89e781
+YaskawaTools.dmg (macOS)   --> sha256:409942f83d1bc4f4857d9ff12de9bd0d29b8bf4111e6c6d036465a0a11258c51
 ```
 
 How to compute the digest of a downloaded file:
