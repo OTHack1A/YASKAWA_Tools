@@ -17,10 +17,11 @@ The application is protected by a password. **It is not published here.**
 Do **not** open a public issue with password requests.
 
 Security notes you should know:
-- After **3 wrong attempts** the app locks for **5 minutes**. The lockout is
-  persistent — closing and reopening the app does **not** reset it, and the
-  lockout file is integrity-protected so editing it to bypass the wait fails
-  closed (it stays locked).
+- After **3 wrong attempts** the app locks for **5 minutes**. A countdown on the
+  login screen shows the remaining time, and the form re-enables itself when it
+  elapses. The lockout is persistent — closing and reopening the app does **not**
+  reset it, and the lockout file is integrity-protected so editing it to bypass
+  the wait fails closed (it stays locked).
 - The password is checked against an **Argon2id** hash with hardened cost
   parameters (128 MiB memory); the plaintext is never stored.
 
@@ -163,7 +164,7 @@ When a document is generated, the app shows a **PDF preview** where you can:
 | Symptom | What to do |
 |---|---|
 | *"Windows protected your PC"* on launch | The app isn't code-signed — choose **More info → Run anyway** (verify the SHA-256 first). |
-| Locked out after wrong passwords | Wait **5 minutes**; the lockout is intentional and persists across restarts. |
+| Locked out after wrong passwords | Wait for the on-screen countdown (**5 minutes**); the lockout is intentional and persists across restarts. |
 | A function asks for a folder and finds nothing | Make sure you selected the **backup folder**, and that it contains the expected files (see the tables above). |
 | Japanese / Cyrillic text not rendering | The app falls back to system fonts; on Windows 10/11 the required fonts are present by default. |
 | Need to report a bug | Open an issue on the repository — but **never post the password** there. |

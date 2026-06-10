@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
-                               QLabel, QLineEdit, QPushButton, QFrame, QApplication)
+                               QLabel, QLineEdit, QPushButton, QFrame)
 from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QPoint, QEasingCurve, QSequentialAnimationGroup, QTimer
 from PySide6.QtGui import QIcon
 
@@ -16,7 +16,16 @@ class LoginWindow(QWidget):
         """Initialise the login window with the shared application state."""
         super().__init__()
         self.app_state = app_state
-        self.attempts_remaining = 3
+        # Source of truth for the counter is the persisted auth state, so the
+        # number shown survives application restarts instead of resetting to 3.
+        self.attempts_remaining = auth.attempts_remaining()
+        self._locked = False
+
+        # Ticks once a second while a lockout is active to update the countdown
+        # and re-enable the form when the window elapses.
+        self._lock_timer = QTimer(self)
+        self._lock_timer.setInterval(1000)
+        self._lock_timer.timeout.connect(self._tick_lockout)
 
         self.setWindowTitle(TRANSLATIONS[self.app_state.language]["title_login"])
         self.resize(1000, 600)
@@ -25,6 +34,7 @@ class LoginWindow(QWidget):
         self.setup_ui()
         self.apply_theme()
         self._apply_tooltips()
+        self._refresh_lock_state()
 
     def setup_ui(self):
         """Build the login window's widgets (logo, password field, buttons, footer)."""
@@ -95,7 +105,7 @@ class LoginWindow(QWidget):
         box_layout.addLayout(btn_layout)
         
         # Footer inside center box to align properly
-        self.lbl_footer = QLabel("v1.1.6 build 1 — Creator 0THack1A")
+        self.lbl_footer = QLabel("v1.1.6 build 2 — Creator 0THack1A")
         self.lbl_footer.setAlignment(Qt.AlignCenter)
         self.lbl_footer.setStyleSheet("color: gray; margin-top: 20px;")
         box_layout.addWidget(self.lbl_footer)
@@ -179,10 +189,12 @@ class LoginWindow(QWidget):
             """)
 
     def showEvent(self, event):
-        """On show, move focus to the password field."""
+        """On show, reflect any active lockout and move focus to the password field."""
         super().showEvent(event)
+        self._refresh_lock_state()
         try:
-            QTimer.singleShot(0, self.txt_password.setFocus)
+            if not self._locked:
+                QTimer.singleShot(0, self.txt_password.setFocus)
         except Exception:
             pass
 
@@ -200,7 +212,7 @@ class LoginWindow(QWidget):
         logger.info("log_lang_changed", lang)
         self.setWindowTitle(t["title_login"])
         self.lbl_prompt.setText(t["password_prompt"])
-        self.lbl_attempts.setText(t["attempts"].format(self.attempts_remaining))
+        self._render_status_label()
         self.btn_login.setText(t["btn_login"])
         self.btn_exit.setText(t["btn_exit"])
         self._apply_tooltips()
@@ -219,35 +231,96 @@ class LoginWindow(QWidget):
     def attempt_login(self):
         # Persistent lockout: a restart no longer resets the failure counter,
         # so an attacker that hit the threshold must wait the cooldown out
-        # regardless of how many times the app is relaunched.
-        """Verify the entered password; on success emit login, otherwise count the failure and lock out at the limit."""
+        # regardless of how many times the app is relaunched.  A failed or
+        # locked-out attempt no longer closes the application — it shows a
+        # clear, self-healing countdown — so the lockout can never be mistaken
+        # for a crash.
+        """Verify the entered password; on success emit login, otherwise count the failure and lock out (without quitting) at the limit."""
         if auth.lockout_remaining_seconds() > 0:
-            logger.error("log_max_attempts")
-            self.txt_password.clear()
-            self.vibrate()
-            QApplication.quit()
+            self._enter_lockout()
             return
 
         password = self.txt_password.text()
 
         if auth.verify_password(password):
-            self.app_state.login_attempts = 4 - self.attempts_remaining
+            self.app_state.login_attempts = auth._MAX_ATTEMPTS - self.attempts_remaining + 1
             auth.record_success()
             logger.info("log_login_success")
+            self._lock_timer.stop()
             self.login_successful.emit()
         else:
             auth.record_failure()
-            self.attempts_remaining -= 1
+            self.attempts_remaining = auth.attempts_remaining()
             logger.warning("log_login_failed", self.attempts_remaining)
 
-            if self.attempts_remaining <= 0 or auth.lockout_remaining_seconds() > 0:
+            if auth.lockout_remaining_seconds() > 0:
+                # Threshold reached → arm the visible countdown, but keep the
+                # window open so the user can retry once it expires.
                 logger.error("log_max_attempts")
-                QApplication.quit()
+                self._enter_lockout()
             else:
                 self.txt_password.clear()
-                t = TRANSLATIONS[self.app_state.language]
-                self.lbl_attempts.setText(t["attempts"].format(self.attempts_remaining))
+                self._render_status_label()
                 self.vibrate()
+
+    # ── Lockout presentation ──────────────────────────────────────────────────
+    @staticmethod
+    def _fmt_remaining(secs):
+        """Format a seconds count as ``m:ss`` for the countdown label."""
+        m, s = divmod(max(0, int(secs)), 60)
+        return f"{m}:{s:02d}"
+
+    def _render_status_label(self):
+        """Show either the lockout countdown or the remaining-attempts count."""
+        t = TRANSLATIONS[self.app_state.language]
+        secs = auth.lockout_remaining_seconds()
+        if secs > 0:
+            self.lbl_attempts.setText(t["locked_retry"].format(self._fmt_remaining(secs)))
+        else:
+            self.lbl_attempts.setText(t["attempts"].format(self.attempts_remaining))
+
+    def _enter_lockout(self):
+        """Disable the form and show a live countdown until the lockout expires."""
+        self._locked = True
+        self.txt_password.clear()
+        self.txt_password.setEnabled(False)
+        self.btn_login.setEnabled(False)
+        self._render_status_label()
+        if not self._lock_timer.isActive():
+            self._lock_timer.start()
+        if self.isVisible():
+            self.vibrate()
+
+    def _tick_lockout(self):
+        """Per-second tick: refresh the countdown or release the lockout."""
+        if auth.lockout_remaining_seconds() > 0:
+            self._render_status_label()
+        else:
+            self._lock_timer.stop()
+            self._exit_lockout()
+
+    def _exit_lockout(self):
+        """Re-enable the form once the lockout window has elapsed."""
+        self._locked = False
+        self.attempts_remaining = auth.attempts_remaining()
+        self.txt_password.setEnabled(True)
+        self.btn_login.setEnabled(True)
+        self._render_status_label()
+        try:
+            self.txt_password.setFocus()
+        except Exception:
+            pass
+
+    def _refresh_lock_state(self):
+        """Reflect any persisted lockout on launch/show instead of letting the user type into a form that would otherwise close the app."""
+        if auth.lockout_remaining_seconds() > 0:
+            self._enter_lockout()
+        else:
+            if self._locked:
+                self._exit_lockout()
+            else:
+                self.attempts_remaining = auth.attempts_remaining()
+                self._render_status_label()
 
     def closeEvent(self, event):
         """Handle the window close event (default behaviour)."""
