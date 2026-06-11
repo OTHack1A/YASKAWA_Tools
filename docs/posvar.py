@@ -35,6 +35,9 @@ import re
 VAR_FILE     = 'VAR.DAT'
 VARNAME_FILE = 'VARNAME.DAT'
 
+# Pendant limit for variable names (longest observed in real back-ups is 16).
+NAME_MAX_LEN = 16
+
 # A config field is a long run of 0/1 (24 bits in practice). Used to validate
 # that a line really matches the expected 6-field header layout.
 _CONFIG_RE = re.compile(r'^[01]{8,}$')
@@ -334,6 +337,86 @@ def write_var_dat(data, out_path, log_fn=None):
         fh.write(''.join(raw_lines))
     os.replace(tmp, out_path)
     return rewritten
+
+
+def write_varname_dat(data, out_path, log_fn=None):
+    """Write edited point names back to a copy of VARNAME.DAT (lossless).
+
+    Names do NOT live in VAR.DAT: the controller keeps them in the ``///P``
+    section of VARNAME.DAT, one ``NNNN f1,f2,NAME`` line per named variable
+    (insertion order, not index order) followed by empty placeholder lines up
+    to the slot count.  This writer mirrors :func:`write_var_dat`'s guarantee:
+    only the lines of points whose ``name_dirty`` flag is set are touched —
+    a rename rewrites that entry in place (flags preserved verbatim), a new
+    name consumes the first empty placeholder line, a cleared name turns the
+    entry back into a placeholder.  Everything else is byte-for-byte.
+
+    The source VARNAME.DAT is looked up next to the parsed VAR.DAT.  Returns
+    the number of names written.  Raises ``RuntimeError`` when the source file
+    is missing/has no ///P section, or when the section has no free line left.
+    """
+    src = os.path.join(os.path.dirname(data['path']), VARNAME_FILE)
+    if not os.path.isfile(src):
+        raise RuntimeError(f'{VARNAME_FILE} not found next to {VAR_FILE}')
+    raw_lines = _read_lines(src)
+    nl = _detect_newline(raw_lines)
+
+    # Locate the ///P section (same sectioning rules as VAR.DAT).
+    p_start = None
+    p_end = len(raw_lines)
+    for i, raw in enumerate(raw_lines):
+        s = raw.rstrip('\r\n').strip()
+        if p_start is None:
+            if s == '///P':
+                p_start = i + 1
+        elif s.startswith('//'):
+            p_end = i
+            break
+    if p_start is None:
+        raise RuntimeError(f'{VARNAME_FILE} has no ///P section')
+
+    # Index the section: existing entries (with their flags, kept verbatim)
+    # and empty placeholder lines available for new names.
+    entry_at, flags_at, empties = {}, {}, []
+    for li in range(p_start, p_end):
+        line = raw_lines[li].rstrip('\r\n')
+        m = re.match(r'^(\d+)\s+(\d+,\d+),(.*)$', line)
+        if m:
+            idx = int(m.group(1))
+            entry_at[idx] = li
+            flags_at[idx] = m.group(2)
+        elif not line.strip():
+            empties.append(li)
+
+    written = 0
+    for pt in data['points']:
+        if not pt.get('name_dirty'):
+            continue
+        idx = pt['index']
+        name = (pt.get('name') or '').strip()[:NAME_MAX_LEN]
+        if idx in entry_at:
+            li = entry_at[idx]
+            if name:
+                raw_lines[li] = '%04d %s,%s%s' % (idx, flags_at[idx], name, nl)
+            else:
+                raw_lines[li] = nl          # cleared → back to placeholder
+        else:
+            if not name:
+                continue                    # no entry and empty name → no-op
+            if not empties:
+                raise RuntimeError(
+                    f'no free line left in the ///P section of {VARNAME_FILE}')
+            li = empties.pop(0)
+            raw_lines[li] = '%04d 1,0,%s%s' % (idx, name, nl)
+        written += 1
+        if log_fn:
+            log_fn('log_posvar_name_written', 'P%03d' % idx, name or '—')
+
+    tmp = out_path + '.tmp'
+    with open(tmp, 'w', encoding='latin-1', errors='replace', newline='') as fh:
+        fh.write(''.join(raw_lines))
+    os.replace(tmp, out_path)
+    return written
 
 
 # ── PDF generation ────────────────────────────────────────────────────────────
