@@ -13,8 +13,8 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from docs.posvar import (  # noqa: E402
-    parse_var_dat, write_var_dat, format_point_line, format_value,
-    frame_label, CONFIG_LEN,
+    parse_var_dat, write_var_dat, write_varname_dat, format_point_line,
+    format_value, frame_label, CONFIG_LEN,
 )
 
 _VAR = (
@@ -31,11 +31,29 @@ _VAR = (
 )
 
 
-def _make(folder):
-    """Write the synthetic VAR.DAT into folder and return its path."""
+# Mirrors the real layout: named entries in insertion order (NOT index order),
+# then empty placeholder lines padding the section up to the slot count.
+_VARNAME = (
+    "//VARNAME\r\n"
+    "///SHARE 0,0,0,0,0,4,0,0\r\n"
+    "///P\r\n"
+    "0001 1,0,APPROACH\r\n"
+    "0000 1,0,HOME\r\n"
+    "\r\n"
+    "\r\n"
+    "///BP\r\n"
+)
+
+
+def _make(folder, with_names=False):
+    """Write the synthetic VAR.DAT (and optionally VARNAME.DAT) into folder."""
     p = os.path.join(folder, "VAR.DAT")
     with open(p, "w", encoding="latin-1", newline="") as fh:
         fh.write(_VAR)
+    if with_names:
+        with open(os.path.join(folder, "VARNAME.DAT"), "w",
+                  encoding="latin-1", newline="") as fh:
+            fh.write(_VARNAME)
     return p
 
 
@@ -126,6 +144,78 @@ def test_unused_slot_activation_line():
         line = format_point_line(p)
         assert line.startswith('"RECTAN"')
         assert len(line.split(",")) == 14, "must have 6 header + 8 value fields"
+
+
+def test_varname_parse_and_unedited_roundtrip():
+    """Names load from VARNAME.DAT; an unedited name export is byte-identical."""
+    with tempfile.TemporaryDirectory() as d:
+        _make(d, with_names=True)
+        data = parse_var_dat(d)
+        pts = data["points"]
+        assert pts[0]["name"] == "HOME" and pts[1]["name"] == "APPROACH"
+        out = os.path.join(d, "out.DAT")
+        n = write_varname_dat(data, out)
+        assert n == 0, "no names edited, nothing should be rewritten"
+        original = open(os.path.join(d, "VARNAME.DAT"), "rb").read()
+        assert open(out, "rb").read() == original
+
+
+def test_varname_rename_existing_entry():
+    """Renaming an existing entry rewrites that line in place, flags preserved."""
+    with tempfile.TemporaryDirectory() as d:
+        _make(d, with_names=True)
+        data = parse_var_dat(d)
+        data["points"][0]["name"] = "CASA"
+        data["points"][0]["name_dirty"] = True
+        out = os.path.join(d, "VARNAME.DAT")
+        assert write_varname_dat(data, out) == 1
+        lines = open(out, encoding="latin-1").read().splitlines()
+        assert lines[4] == "0000 1,0,CASA", f"got {lines[4]!r}"
+        assert lines[3] == "0001 1,0,APPROACH", "other entry must be untouched"
+
+
+def test_varname_new_name_uses_first_placeholder():
+    """Naming a point with no entry consumes the first empty placeholder line."""
+    with tempfile.TemporaryDirectory() as d:
+        _make(d, with_names=True)
+        data = parse_var_dat(d)
+        data["points"][3]["name"] = "PARK"
+        data["points"][3]["name_dirty"] = True
+        out = os.path.join(d, "VARNAME.DAT")
+        assert write_varname_dat(data, out) == 1
+        lines = open(out, encoding="latin-1").read().splitlines()
+        assert lines[5] == "0003 1,0,PARK", f"got {lines[5]!r}"
+        assert lines[6] == "", "second placeholder must stay empty"
+        assert lines[7] == "///BP", "following section must be untouched"
+
+
+def test_varname_clear_name_restores_placeholder():
+    """Clearing a name turns its entry line back into an empty placeholder."""
+    with tempfile.TemporaryDirectory() as d:
+        _make(d, with_names=True)
+        data = parse_var_dat(d)
+        data["points"][1]["name"] = ""
+        data["points"][1]["name_dirty"] = True
+        out = os.path.join(d, "VARNAME.DAT")
+        assert write_varname_dat(data, out) == 1
+        lines = open(out, encoding="latin-1").read().splitlines()
+        assert lines[3] == "", "cleared entry must become an empty line"
+        assert lines[4] == "0000 1,0,HOME", "other entry must be untouched"
+
+
+def test_varname_real_r1_reference_roundtrip():
+    """If the bundled R1/VARNAME.DAT is present, an unedited export is identical."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    folder = os.path.join(repo, "R1")
+    if not (os.path.isfile(os.path.join(folder, "VAR.DAT"))
+            and os.path.isfile(os.path.join(folder, "VARNAME.DAT"))):
+        return  # reference not present — skip
+    data = parse_var_dat(folder)
+    original = open(os.path.join(folder, "VARNAME.DAT"), "rb").read()
+    with tempfile.TemporaryDirectory() as d:
+        out = os.path.join(d, "VARNAME.DAT")
+        write_varname_dat(data, out)
+        assert open(out, "rb").read() == original, "R1 VARNAME round-trip differs"
 
 
 def test_no_p_section_raises():
