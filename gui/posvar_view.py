@@ -21,8 +21,9 @@ from translations import TRANSLATIONS
 import logger
 import secure_paths
 from docs.posvar import (
-    parse_var_dat, write_var_dat, generate_posvar_pdf,
-    axis_labels, format_value, CONFIG_LEN, VAR_FILE,
+    parse_var_dat, write_var_dat, write_varname_dat, generate_posvar_pdf,
+    axis_labels, format_value, CONFIG_LEN, NAME_MAX_LEN,
+    VAR_FILE, VARNAME_FILE,
 )
 
 # ── Column indices ──────────────────────────────────────────────────────────
@@ -215,9 +216,9 @@ class PosVarView(QWidget):
         is_raw = (p.get('type') == 'RAW')
         editable = used and not is_raw
 
-        # P id (read-only) and name (read-only display from VARNAME)
+        # P id (read-only); name editable on defined slots (stored in VARNAME.DAT)
         self._tbl.setItem(r, C_P, self._mk_item('P%03d' % p['index'], False, center=True))
-        self._tbl.setItem(r, C_NAME, self._mk_item(p.get('name', ''), False))
+        self._tbl.setItem(r, C_NAME, self._mk_item(p.get('name', ''), editable))
 
         # Type — editable via delegate unless RAW
         type_disp = p.get('type', 'UNUSED')
@@ -303,7 +304,9 @@ class PosVarView(QWidget):
             return
         p = self._points[r]
         try:
-            if c == C_TOOL:
+            if c == C_NAME:
+                self._commit_name(p, r, c, item)
+            elif c == C_TOOL:
                 self._commit_int(p, r, c, 'tool', item, lo=0, hi=63)
             elif c == C_FR:
                 self._commit_int(p, r, c, 'h2', item, lo=0, hi=63)
@@ -313,6 +316,37 @@ class PosVarView(QWidget):
                 self._commit_value(p, r, c, item)
         except Exception as exc:
             logger.error('log_error_generic', str(exc))
+
+    def _commit_name(self, p, r, c, item):
+        """Commit a point-name edit (goes to VARNAME.DAT, not VAR.DAT).
+
+        Pendant rules: max ``NAME_MAX_LEN`` chars, latin-1 encodable, no
+        control characters.  Commas are rejected because the VARNAME line
+        format is comma-separated.  An empty text clears the name.
+        """
+        txt = item.text().strip()
+        ok = (len(txt) <= NAME_MAX_LEN and ',' not in txt
+              and not any(ord(ch) < 32 for ch in txt))
+        if ok:
+            try:
+                txt.encode('latin-1')
+            except UnicodeEncodeError:
+                ok = False
+        if not ok:
+            logger.warning('log_invalid_input', txt or '—')
+            self._set_cell_text(r, c, p.get('name', ''))
+            return
+        old = p.get('name', '')
+        if txt == old:
+            return
+        p['name'] = txt
+        # Names live in VARNAME.DAT: a separate dirty flag so a rename never
+        # forces the point's VAR.DAT line to be rewritten.
+        p['name_dirty'] = True
+        self._set_cell_text(r, c, txt)
+        logger.info('log_posvar_edit', 'P%03d' % p['index'],
+                    self._tbl.horizontalHeaderItem(c).text(),
+                    old or '—', txt or '—')
 
     def _commit_int(self, p, r, c, key, item, lo, hi):
         """Commit an integer cell (Tool / Fr#) with range validation + logging."""
@@ -417,8 +451,8 @@ class PosVarView(QWidget):
         if it is None or (it.flags() & Qt.ItemIsEditable):
             return
         # Non-editable cell that the user attempted to edit.
-        if c in (C_P, C_NAME):
-            return  # silently read-only (id / name)
+        if c == C_P:
+            return  # silently read-only (point id)
         p = self._points[r]
         col_name = self._tbl.horizontalHeaderItem(c).text()
         if c in (_E1_COL, _E2_COL) and not self._has_ext:
@@ -459,6 +493,11 @@ class PosVarView(QWidget):
         try:
             n = write_var_dat(self._data, out, log_fn=logger.info)
             logger.info('log_posvar_exported', out, n)
+            # Names live in VARNAME.DAT — export it too when any name changed.
+            if any(p.get('name_dirty') for p in self._points):
+                out_names = os.path.join(folder, VARNAME_FILE)
+                wn = write_varname_dat(self._data, out_names, log_fn=logger.info)
+                logger.info('log_posvar_names_exported', out_names, wn)
             try:
                 from docs.fsutil import reveal_in_explorer
                 reveal_in_explorer(out)
