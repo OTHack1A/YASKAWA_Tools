@@ -23,7 +23,7 @@ Security notes you should know:
   reset it, and the lockout file is integrity-protected so editing it to bypass
   the wait fails closed (it stays locked).
 - The password is checked against an **Argon2id** hash with hardened cost
-  parameters (128 MiB memory); the plaintext is never stored.
+  parameters (128 MiB memory, time 4, parallelism 4); the plaintext is never stored.
 
 ---
 
@@ -51,9 +51,9 @@ Security notes you should know:
 No installation is needed — the program is a single self-contained executable.
 
 ### Windows SmartScreen note
-The executable is not code-signed, so Windows may show
-*"Windows protected your PC"*. If you trust the source, click **More info →
-Run anyway**. (Verifying the SHA-256 first is the safe way to confirm integrity.)
+Windows binaries are **code-signed** (Authenticode + RFC-3161 timestamp via
+[SignPath Foundation](https://signpath.org)). If SmartScreen still shows a warning
+on first run, verify the SHA-256 hash first, then click **More info → Run anyway**.
 
 ---
 
@@ -159,14 +159,34 @@ When a document is generated, the app shows a **PDF preview** where you can:
 
 ---
 
-## 7. Troubleshooting
+## 7. Customising the creator name in PDFs
+
+Every generated PDF carries a header with the application logo and a **creator
+name** (default: `0THack1A`). You can change this name without rebuilding the
+application:
+
+1. Open **Help → About** (or the equivalent menu in your language).
+2. Scroll to the **Creator** section at the bottom of the dialog.
+3. Click inside the text field showing the current name and type the new one.
+   Only Western-alphabet characters, digits, spaces, and the symbols `_`, `-`, `.`
+   are accepted; any other character is silently rejected by the input field.
+4. Press **Save name** (or the equivalent button in your language).
+
+The new name is saved to `%APPDATA%\YaskawaTools\config.json` and takes effect
+immediately — all PDFs generated from that point on will carry the updated name in
+their headers.
+
+---
+
+## 8. Troubleshooting
 
 | Symptom | What to do |
 |---|---|
-| *"Windows protected your PC"* on launch | The app isn't code-signed — choose **More info → Run anyway** (verify the SHA-256 first). |
+| *"Windows protected your PC"* on launch | Verify the SHA-256 hash first, then choose **More info → Run anyway**. |
 | Locked out after wrong passwords | Wait for the on-screen countdown (**5 minutes**); the lockout is intentional and persists across restarts. |
 | A function asks for a folder and finds nothing | Make sure you selected the **backup folder**, and that it contains the expected files (see the tables above). |
 | Japanese / Cyrillic text not rendering | The app falls back to system fonts; on Windows 10/11 the required fonts are present by default. |
+| Creator name in PDFs not updating | Open Help → About, edit the name, and press **Save name**. The change takes effect for the next PDF generated. |
 | Need to report a bug | Open an issue on the repository — but **never post the password** there. |
 
 ---

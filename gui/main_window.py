@@ -2073,26 +2073,66 @@ class AboutDialog(QDialog):
         l3.setSpacing(8)
 
         from gui.top_bar import get_resource_path
+        from PySide6.QtWidgets import QLineEdit
         photo_lbl = QLabel()
         photo_lbl.setAlignment(Qt.AlignCenter)
-        photo_path = get_resource_path("Foto_profilo.jpg")
+        photo_path = get_resource_path("assets/Foto_profilo.jpg")
         photo_pix = QPixmap(photo_path)
         if not photo_pix.isNull():
             photo_pix = photo_pix.scaledToHeight(180, Qt.SmoothTransformation)
             photo_lbl.setPixmap(photo_pix)
         l3.addWidget(photo_lbl, alignment=Qt.AlignCenter)
 
-        caption_lbl = QLabel("0THack1A")
-        caption_lbl.setAlignment(Qt.AlignCenter)
-        caption_lbl.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 6px;")
-        l3.addWidget(caption_lbl, alignment=Qt.AlignCenter)
+        self._creator_edit = QLineEdit(getattr(self.app_state, 'creator_name', '0THack1A'))
+        self._creator_edit.setAlignment(Qt.AlignCenter)
+        self._creator_edit.setFixedHeight(34)
+        self._creator_edit.setMaxLength(50)
+        rx = QRegularExpression(r'^[A-Za-zÀ-ÖØ-öø-ÿ0-9 _\-\.]*$')
+        self._creator_edit.setValidator(QRegularExpressionValidator(rx, self._creator_edit))
+        l3.addWidget(self._creator_edit, alignment=Qt.AlignCenter)
+
+        save_btn = QPushButton(t.get("creator_name_save", "Save name"))
+        save_btn.setFixedHeight(32)
+        save_btn.setCursor(Qt.PointingHandCursor)
+        save_btn.clicked.connect(self._on_save_creator)
+        l3.addWidget(save_btn, alignment=Qt.AlignCenter)
 
         layout.addWidget(group3, 1)
 
         if is_dark_mode:
-            self.setStyleSheet("QDialog { background-color: #3A2D26; color: white; } QGroupBox { color: white; border: 1px solid #5C4938; margin-top: 10px; font-weight: bold; } QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 3px 0 3px; } QLabel { color: white; font-weight: normal; }")
+            self.setStyleSheet(
+                "QDialog { background-color: #3A2D26; color: white; }"
+                "QGroupBox { color: white; border: 1px solid #5C4938; margin-top: 10px; font-weight: bold; }"
+                "QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 3px 0 3px; }"
+                "QLabel { color: white; font-weight: normal; }"
+                "QLineEdit { background-color: #231811; color: white; border: 1px solid #D97757;"
+                "            font-size: 16px; font-weight: bold; padding: 2px 8px; }"
+                "QPushButton { background-color: #D97757; color: white; border: none;"
+                "              font-size: 14px; padding: 4px 16px; }"
+                "QPushButton:hover { background-color: #A85C42; }"
+            )
         else:
-            self.setStyleSheet("QDialog { background-color: white; color: black; } QGroupBox { color: black; border: 1px solid #ccc; margin-top: 10px; font-weight: bold; } QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 3px 0 3px; } QLabel { color: black; font-weight: normal; }")
+            self.setStyleSheet(
+                "QDialog { background-color: white; color: black; }"
+                "QGroupBox { color: black; border: 1px solid #ccc; margin-top: 10px; font-weight: bold; }"
+                "QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 3px 0 3px; }"
+                "QLabel { color: black; font-weight: normal; }"
+                "QLineEdit { background-color: white; color: black; border: 1px solid #D97757;"
+                "            font-size: 16px; font-weight: bold; padding: 2px 8px; }"
+                "QPushButton { background-color: #D97757; color: white; border: none;"
+                "              font-size: 14px; padding: 4px 16px; }"
+                "QPushButton:hover { background-color: #A85C42; }"
+            )
+
+    def _on_save_creator(self):
+        """Save the edited creator name to app state and to the config file."""
+        name = self._creator_edit.text().strip()
+        if not name:
+            return
+        self.app_state.creator_name = name
+        import config as _config
+        _config.save_creator_name(name)
+        logger.info("log_btn_pressed", self._creator_edit.text())
 
     def closeEvent(self, event):
         """Log and handle the About dialog close event."""

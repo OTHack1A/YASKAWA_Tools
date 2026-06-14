@@ -1,6 +1,6 @@
 # YASKAWA Tools — Application Documentation
 
-**Version:** v1.1.6 build 1
+**Version:** v1.1.8 build 1
 **Platform:** Windows 10 / 11 (64-bit) — also buildable for Linux and macOS
 **Core dependencies:** Python 3.10+, PySide6, ReportLab, openpyxl, pypdf
 
@@ -25,9 +25,10 @@ The interface is **password-protected** (Argon2id), supports a **light/dark them
 
 On launch the application shows a login window before any functionality becomes available. Authentication is intentionally conservative because the tool can expose configuration details of an industrial cell:
 
-- The password is verified against a stored **Argon2id** hash (parameters `m=65536, t=3, p=4`). The plaintext password is never stored.
+- The password is verified against a stored **Argon2id** hash (hardened parameters: `m=131072` (128 MiB), `t=4`, `p=4`). The plaintext password is never stored.
 - After a maximum of **3 failed attempts**, the application arms a **5-minute lockout**.
 - The lockout state is **persisted** to `auth_state.json` under `%APPDATA%\YaskawaTools`. Because the counter lives on disk rather than in process memory, simply closing and reopening the application does **not** reset it — this prevents a trivial brute-force bypass.
+- The lockout state file is **HMAC-integrity-protected** (keyed by an embedded pepper bound to the local machine name). A file that is present but carries a missing or invalid signature is treated as tampering and fails closed — the lockout remains active — rather than being silently reset. Deleting the file reverts to a first-run state, which is an inherent limit of any server-less design.
 - Every verification call enforces a **constant-time floor of 500 ms**. This neutralises timing side-channels that could otherwise distinguish "wrong password" from "no password configured" or "invalid hash".
 
 Once the password is accepted, the login window closes and the main window opens, with the current Windows username shown in the top bar.
@@ -50,7 +51,7 @@ As an additional hardening measure, `main.py` strips all command-line arguments 
 └─────────────────────────────────────────────┘
 ```
 
-- **Top Bar** (`gui/top_bar.py`) — displays the logged-in user, the application logo, and the controls for switching theme (light/dark) and language. The language selector offers all seven supported locales.
+- **Top Bar** (`gui/top_bar.py`) — displays the application logo (loaded from `assets/logo-home.png`), the logged-in Windows username, and the controls for switching theme (light/dark) and language. The language selector offers all seven supported locales. If the logo image cannot be loaded, the top bar falls back to displaying the creator name as text.
 - **Tool Panel** (`gui/tool_panel.py`) — the left-hand side menu containing the buttons for the main functions.
 - **Main Window** (`gui/main_window.py`) — orchestrates the menu, loads the robot backup folder, and hosts the dynamic views in the central work area.
 - **Log Panel** — a collapsible area at the bottom that displays application events (actions, generated files, warnings, errors) in real time.
@@ -94,7 +95,7 @@ Each module is responsible for parsing one family of backup files and rendering 
 | JBI flowchart | `docs/flowchart.py` | Generates a graphical flowchart (PDF + draw.io XML) of the execution flow of an INFORM job. |
 | Drive (GA500) | `docs/drive.py` | Reads `.YDWIProj` files from DriveWizard Industrial and generates GA500 inverter parameter reports. |
 
-Shared rendering helpers live in `docs/pdf_header.py` (the common page header: logo + title + accent bar) and `docs/utils.py`.
+Shared rendering helpers live in `docs/pdf_header.py` (the common page header: logo + creator name + accent bar) and `docs/utils.py`. The creator name shown in the PDF header is read at generation time from `app_state.creator_name` (see §8), so every PDF produced during a session reflects the currently configured name without requiring a rebuild.
 
 ### 4.3 Specialised GUI views
 
@@ -159,14 +160,34 @@ CJK rendering is enabled application-wide by configuring a font family stack (`S
 
 ---
 
-## 8. Paths and security
+## 8. Paths, security, and user settings
 
-The `secure_paths.py` module centralises the application paths under `%APPDATA%\YaskawaTools`. Writing state files (lockout state, logs) into this directory has two benefits: the data lands in a location whose default ACLs restrict access to the current Windows user, and the application never needs administrator privileges to run.
+The `secure_paths.py` module centralises the application paths under `%APPDATA%\YaskawaTools`. Writing state files into this directory has two benefits: the data lands in a location whose default ACLs restrict access to the current Windows user, and the application never needs administrator privileges to run.
+
+The following files are written under that directory:
+
+| File | Purpose |
+|---|---|
+| `auth_state.json` | Persistent lockout counter and lockout-until timestamp (HMAC-signed) |
+| `YASKAWAToolsLog.log` | Rotating application log (10 MB cap) |
+| `config.json` | User settings: currently the editable creator name |
+
+### Creator name
+
+The creator name is the string displayed in the header of every generated PDF (right of the logo). It defaults to `0THack1A` and can be changed without rebuilding the application:
+
+1. Open **Help → About**.
+2. Edit the text field in the **Creator** section.
+   The field accepts only Western-alphabet characters, digits, spaces, and `_`, `-`, `.` (enforced client-side by a `QRegularExpressionValidator` with pattern `^[A-Za-zÀ-ÖØ-öø-ÿ0-9 _\-\.]*$`).
+3. Press **Save name**.
+
+`config.py` (`save_creator_name`) writes the value atomically (temp file + `os.replace`) to `%APPDATA%\YaskawaTools\config.json`. On next startup, `main.py` calls `config.load_creator_name()` and stores the result in `AppState.creator_name`. All PDF modules call `docs/pdf_header._get_company()` at render time, which reads `main.app_state.creator_name` directly, so the header always reflects the most recently saved name.
 
 The `auth.py` module provides authentication with the following protections:
 
-- **Argon2id** password hashing (`m=65536, t=3, p=4`).
+- **Argon2id** password hashing (`m=131072` / 128 MiB, `t=4`, `p=4`).
 - **Persistent lockout** — 3 failed attempts trigger a 5-minute block that survives application restarts.
+- **HMAC-protected state file** — the lockout counter and timestamp are integrity-protected with `HMAC-SHA256` keyed by a pepper bound to the machine name; a tampered or transplanted state file fails closed.
 - **Constant-time verification floor** of 500 ms per call to defeat timing attacks.
 
 Together with the command-line argument stripping performed in `main.py`, these measures keep the attack surface of the packaged executable small.
@@ -175,19 +196,28 @@ Together with the command-line argument stripping performed in `main.py`, these 
 
 ## 9. Building the executable
 
-The executable is produced with **PyInstaller** from the `main.spec` file:
+The executable is produced with **PyInstaller** from the platform-specific spec file:
 
 ```bash
+# Windows
 pyinstaller main.spec
+
+# macOS
+pyinstaller main_macos.spec
+
+# Linux
+pyinstaller main_linux.spec
 ```
 
-The output is placed in `dist/YaskawaTools.exe`. The build is **one-file** (everything packed into a single `.exe`), runs **without a console window** (`console=False`), and is compressed with **UPX**.
+The output is placed in `dist/YaskawaTools[.exe|.app|]`. The Windows build is **one-file** (everything packed into a single `.exe`), runs **without a console window** (`console=False`), and is compressed with **UPX**.
 
-Bundled resources include:
+Bundled resources (packed into the `assets/` subdirectory of the MEIPASS tree so that `get_resource_path("assets/...")` resolves correctly in both development and frozen mode):
 
-- `assets/logo-home.png` — application icon
-- `assets/Foto_profilo.jpg` — profile image shown in the Top Bar and About dialog
-- `langdetect` profiles — used for automatic language detection inside JBI files
+| Resource | Purpose |
+|---|---|
+| `assets/logo-home.png` | Application logo shown in the top bar and PDF page header |
+| `assets/Foto_profilo.jpg` | Profile image shown in the About dialog (Creator section) |
+| `langdetect` profiles | Automatic language detection inside JBI files |
 
 Equivalent spec files are provided for the other platforms: `main_linux.spec` (Linux one-file binary) and `main_macos.spec` (macOS `.app` bundle, packaged into a `.dmg` by the CI workflow). Built binaries are distributed via **GitHub Releases**, not committed to the repository.
 

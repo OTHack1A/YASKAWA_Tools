@@ -26,6 +26,7 @@ A dedicated module handles **DriveWizard Industrial** project files (`.YDWIProj`
 - **INFORM flowchart** — generates a graphical flowchart (PDF + draw.io XML) of the execution flow of any JBI job.
 - **Interactive IF Panel viewer** — visualises the 15 IF panel pages with colours and I/O assignments.
 - **Points-only editor** — edits the position variables (`P`) of `VAR.DAT` in a single table (number-prefix search, all slots listed so free slots can become new points) and exports them back, rewriting only the changed point lines while preserving the rest of the file byte-for-byte.
+- **Editable creator name** — the name that appears in the header of every generated PDF can be customised from **Help → About → Creator section**: edit the field and press *Save name*. The value is persisted to `%APPDATA%\YaskawaTools\config.json` and used automatically by all PDF modules on next generation.
 - **Multilingual interface** — seven languages: English (default), Italian, French, German, Spanish, Ukrainian, and Japanese. The language can be switched at runtime from the top bar.
 - **Rotating log** — all user actions, generated files, warnings, and errors are written to a rotating log file (`YASKAWAToolsLog.log`, max 10 MB). The log is also visible in a collapsible panel inside the application.
 - **Password protection** — access is guarded by an Argon2id-hashed password (hardened cost: 128 MiB memory, time 4, parallelism 4) with a persistent lockout (3 failed attempts → 5-minute block) and a constant-time verification floor to prevent timing attacks. The lockout state file is HMAC-integrity-protected and fails closed if tampered with, so an in-progress lockout cannot be cleared by editing it.
@@ -94,8 +95,11 @@ committed — it is excluded by `.gitignore`.
 ```
 yaskawa-tools/
 ├── main.py              Entry point
-├── main.spec            PyInstaller build spec
+├── main.spec            PyInstaller build spec (Windows)
+├── main_macos.spec      PyInstaller build spec (macOS)
+├── main_linux.spec      PyInstaller build spec (Linux)
 ├── auth.py              Argon2id authentication + lockout
+├── config.py            Persistent user settings (creator name) — JSON in %APPDATA%
 ├── logger.py            Rotating log (10 MB cap)
 ├── secure_paths.py      %APPDATA% path helpers
 ├── tooltips.py          UI tooltips registry

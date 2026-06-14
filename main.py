@@ -6,11 +6,13 @@ from PySide6.QtWidgets import QApplication
 from gui.login_window import LoginWindow
 from gui.main_window import MainWindow
 import logger
+import config as _config
 
 # Global theme and language state
 class AppState:
     is_dark_mode = False
     language = "EN"
+    creator_name = _config.DEFAULT_CREATOR
 
 app_state = AppState()
 
@@ -75,8 +77,9 @@ def run():
         # complains about an unknown role on this build.
         pass
     
+    app_state.creator_name = _config.load_creator_name()
     logger.info("log_start")
-    
+
     login = LoginWindow(app_state)
     
     def on_login_success():
