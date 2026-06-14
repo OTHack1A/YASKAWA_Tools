@@ -1,6 +1,6 @@
 # YASKAWA Tools — Application Documentation
 
-**Version:** v1.1.9
+**Version:** v1.1.10
 **Platform:** Windows 10 / 11 (64-bit) — also buildable for Linux and macOS
 **Core dependencies:** Python 3.10+, PySide6, ReportLab, openpyxl, pypdf
 
