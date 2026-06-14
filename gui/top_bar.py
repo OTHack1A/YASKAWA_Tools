@@ -1,9 +1,9 @@
 
 import os
 import sys
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton, QSizePolicy
-from PySide6.QtCore import Qt, Signal, QSize
-from PySide6.QtGui import QPixmap, QIcon, QFont
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QLineEdit
+from PySide6.QtCore import Qt, Signal, QSize, QRegularExpression
+from PySide6.QtGui import QPixmap, QIcon, QFont, QRegularExpressionValidator
 from translations import TRANSLATIONS
 import logger
 
@@ -61,7 +61,33 @@ class TopBar(QWidget):
         layout.addWidget(self.subtitle_label)
         
         layout.addStretch()
-        
+
+        # PDF creator name field — always visible; value ends up in every PDF header
+        self.creator_field = QLineEdit(getattr(self.app_state, 'creator_name', '0THack1A'))
+        self.creator_field.setFixedWidth(160)
+        self.creator_field.setFixedHeight(34)
+        self.creator_field.setMaxLength(50)
+        self.creator_field.setPlaceholderText("PDF name")
+        self.creator_field.setFocusPolicy(Qt.ClickFocus)
+        _rx = QRegularExpression(r'^[A-Za-zÀ-ÖØ-öø-ÿ0-9 _\-\.]*$')
+        self.creator_field.setValidator(QRegularExpressionValidator(_rx, self.creator_field))
+        self.creator_field.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid rgba(255, 255, 255, 0.7);
+                border-radius: 4px;
+                background-color: rgba(255, 255, 255, 0.15);
+                color: white;
+                padding: 1px 8px;
+                font-size: 13px;
+            }
+            QLineEdit:focus {
+                border: 1px solid white;
+                background-color: rgba(255, 255, 255, 0.25);
+            }
+        """)
+        self.creator_field.editingFinished.connect(self._on_creator_name_changed)
+        layout.addWidget(self.creator_field)
+
         # Theme toggle button
         self.theme_btn = QPushButton("🌙" if not self.app_state.is_dark_mode else "☀")
         self.theme_btn.setFixedSize(45, 45)
@@ -190,3 +216,13 @@ class TopBar(QWidget):
         else:
             self.subtitle_label.setText(t["top_bar_login"])
         self.title_label.setText(t["title_main"])
+
+    def _on_creator_name_changed(self):
+        """Persist the PDF creator name when the user confirms the field (Enter / focus-out)."""
+        name = self.creator_field.text().strip()
+        if not name:
+            self.creator_field.setText(getattr(self.app_state, 'creator_name', '0THack1A'))
+            return
+        self.app_state.creator_name = name
+        import config as _config
+        _config.save_creator_name(name)
