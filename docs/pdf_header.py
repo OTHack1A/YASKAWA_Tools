@@ -8,21 +8,32 @@ HEADER_H_MM   = 17   # total header area height (reserved from top of page)
 BAR_H_MM      = 2    # accent bar height
 TOP_MARGIN_MM = 22   # recommended topMargin for all PDFs using this header
 
-_ACCENT    = colors.HexColor('#D97757')
-_COMPANY = "0THack1A"
+_ACCENT = colors.HexColor('#D97757')
 
 
 def _logo_path():
     """Return the path to the bundled logo (PNG preferred, BMP fallback), handling PyInstaller bundling."""
     if hasattr(sys, '_MEIPASS'):
-        base = sys._MEIPASS
+        base = os.path.join(sys._MEIPASS, 'assets')
     else:
-        base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        base = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'assets')
     for ext in ('.png', '.bmp'):
         p = os.path.join(base, f'logo-home{ext}')
         if os.path.exists(p):
             return p
     return os.path.join(base, 'logo-home.bmp')
+
+
+def _get_company():
+    """Return the current creator name from the shared app state, with a compiled-in fallback."""
+    try:
+        import main as _main
+        name = getattr(_main.app_state, 'creator_name', None)
+        if name and name.strip():
+            return name.strip()
+    except Exception:
+        pass
+    return "0THack1A"
 
 
 def draw_page_header(canvas, doc):
@@ -59,7 +70,7 @@ def draw_page_header(canvas, doc):
         font_size = 7 if (W < 500) else 8   # smaller on A5/smaller pages
         canvas.setFont('Helvetica', font_size)
         canvas.setFillColor(colors.HexColor('#333333'))
-        canvas.drawCentredString(text_x, area_y + area_h / 2 - 3.5, _COMPANY)
+        canvas.drawCentredString(text_x, area_y + area_h / 2 - 3.5, _get_company())
 
         # Accent bar (full page width)
         canvas.setFillColor(_ACCENT)

@@ -10,8 +10,8 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('assets/logo-home.png', '.'),
-        ('assets/Foto_profilo.jpg', '.'),
+        ('assets/logo-home.png', 'assets'),
+        ('assets/Foto_profilo.jpg', 'assets'),
         (_langdetect_profiles, 'langdetect/profiles'),
     ],
     hiddenimports=[
@@ -68,6 +68,7 @@ a = Analysis(
         'logger',
         'secure_paths',
         'auth',
+        'config',
         'tooltips',
         'langdetect',
         'langdetect.detector',
