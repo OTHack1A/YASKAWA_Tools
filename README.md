@@ -127,9 +127,9 @@ downloaded matches the SHA-256 published for that release before running it.
 **SHA-256 for the latest release (v1.1.10 — update these on every release):**
 
 ```
-YaskawaTools.exe (Windows) --> sha256:pending — see the v1.1.10 release page
-YaskawaTools     (Linux)   --> sha256:pending — see the v1.1.10 release page
-YaskawaTools.dmg (macOS)   --> sha256:pending — see the v1.1.10 release page
+YaskawaTools.exe (Windows) --> sha256:eebc5324dce7adac99f886fec6fca108210d8925df2538541105f9177afdc3e9
+YaskawaTools     (Linux)   --> sha256:4838324d82f87e295fdf18ea43a45ad0431a059f9bb3291f1f001ae02b93f6dd
+YaskawaTools.dmg (macOS)   --> sha256:5abd1cc2cee2bb01fca0c96f392704c522f5fe1b1e55412a8861e7de174db1ce
 ```
 
 How to compute the digest of a downloaded file:
