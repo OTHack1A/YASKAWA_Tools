@@ -1,6 +1,6 @@
 # YASKAWA Tools — Application Documentation
 
-**Version:** v1.1.10
+**Version:** v1.1.11
 **Platform:** Windows 10 / 11 (64-bit) — also buildable for Linux and macOS
 **Core dependencies:** Python 3.10+, PySide6, ReportLab, openpyxl, pypdf
 
@@ -51,7 +51,7 @@ As an additional hardening measure, `main.py` strips all command-line arguments 
 └─────────────────────────────────────────────┘
 ```
 
-- **Top Bar** (`gui/top_bar.py`) — displays the application logo (loaded from `assets/logo-home.png`), the logged-in Windows username, and the controls for switching theme (light/dark) and language. The language selector offers all seven supported locales. If the logo image cannot be loaded, the top bar falls back to displaying the creator name as text.
+- **Top Bar** (`gui/top_bar.py`) — displays the application logo (loaded from `assets/logo-home.png`), the logged-in Windows username, an editable **PDF creator name** field, and the controls for switching theme (light/dark) and language. The language selector offers all seven supported locales. If the logo image cannot be loaded, the top bar falls back to displaying the creator name as text.
 - **Tool Panel** (`gui/tool_panel.py`) — the left-hand side menu containing the buttons for the main functions.
 - **Main Window** (`gui/main_window.py`) — orchestrates the menu, loads the robot backup folder, and hosts the dynamic views in the central work area.
 - **Log Panel** — a collapsible area at the bottom that displays application events (actions, generated files, warnings, errors) in real time.
@@ -176,10 +176,9 @@ The following files are written under that directory:
 
 The creator name is the string displayed in the header of every generated PDF (right of the logo). It defaults to `0THack1A` and can be changed without rebuilding the application:
 
-1. Open **Help → About**.
-2. Edit the text field in the **Creator** section.
-   The field accepts only Western-alphabet characters, digits, spaces, and `_`, `-`, `.` (enforced client-side by a `QRegularExpressionValidator` with pattern `^[A-Za-zÀ-ÖØ-öø-ÿ0-9 _\-\.]*$`).
-3. Press **Save name**.
+1. Click the **PDF name** field in the **top bar** (always visible, to the left of the theme button).
+2. Type the desired name and press **Enter** or click elsewhere to confirm.
+   The field accepts only Western-alphabet characters, digits, spaces, and `_`, `-`, `.` (enforced by a `QRegularExpressionValidator` with pattern `^[A-Za-zÀ-ÖØ-öø-ÿ0-9 _\-\.]*$`).
 
 `config.py` (`save_creator_name`) writes the value atomically (temp file + `os.replace`) to `%APPDATA%\YaskawaTools\config.json`. On next startup, `main.py` calls `config.load_creator_name()` and stores the result in `AppState.creator_name`. All PDF modules call `docs/pdf_header._get_company()` at render time, which reads `main.app_state.creator_name` directly, so the header always reflects the most recently saved name.
 

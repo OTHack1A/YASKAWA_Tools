@@ -26,13 +26,14 @@ def _logo_path():
 
 def _get_company():
     """Return the current creator name from the shared app state, with a compiled-in fallback."""
-    try:
-        import main as _main
-        name = getattr(_main.app_state, 'creator_name', None)
-        if name and name.strip():
-            return name.strip()
-    except Exception:
-        pass
+    for mod_name in ('__main__', 'main'):
+        mod = sys.modules.get(mod_name)
+        try:
+            name = getattr(getattr(mod, 'app_state', None), 'creator_name', None)
+            if name and name.strip():
+                return name.strip()
+        except Exception:
+            pass
     return "0THack1A"
 
 
