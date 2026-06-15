@@ -26,7 +26,7 @@ A dedicated module handles **DriveWizard Industrial** project files (`.YDWIProj`
 - **INFORM flowchart** — generates a graphical flowchart (PDF + draw.io XML) of the execution flow of any JBI job.
 - **Interactive IF Panel viewer** — visualises the 15 IF panel pages with colours and I/O assignments.
 - **Points-only editor** — edits the position variables (`P`) of `VAR.DAT` in a single table (number-prefix search, all slots listed so free slots can become new points) and exports them back, rewriting only the changed point lines while preserving the rest of the file byte-for-byte.
-- **Editable creator name** — the name that appears in the header of every generated PDF can be customised from **Help → About → Creator section**: edit the field and press *Save name*. The value is persisted to `%APPDATA%\YaskawaTools\config.json` and used automatically by all PDF modules on next generation.
+- **Editable creator name** — the name that appears in the header of every generated PDF can be customised directly from the **top bar**: click the *PDF name* field, type the desired name, and press Enter or click elsewhere to confirm. The value is persisted to `%APPDATA%\YaskawaTools\config.json` and used automatically by all PDF modules on next generation.
 - **Multilingual interface** — seven languages: English (default), Italian, French, German, Spanish, Ukrainian, and Japanese. The language can be switched at runtime from the top bar.
 - **Rotating log** — all user actions, generated files, warnings, and errors are written to a rotating log file (`YASKAWAToolsLog.log`, max 10 MB). The log is also visible in a collapsible panel inside the application.
 - **Password protection** — access is guarded by an Argon2id-hashed password (hardened cost: 128 MiB memory, time 4, parallelism 4) with a persistent lockout (3 failed attempts → 5-minute block) and a constant-time verification floor to prevent timing attacks. The lockout state file is HMAC-integrity-protected and fails closed if tampered with, so an in-progress lockout cannot be cleared by editing it.
@@ -124,12 +124,12 @@ yaskawa-tools/
 The binaries are published under [Releases](../../releases). Verify the file you
 downloaded matches the SHA-256 published for that release before running it.
 
-**SHA-256 for the latest release (v1.1.10 — update these on every release):**
+**SHA-256 for the latest release (v1.1.11 — update these on every release):**
 
 ```
-YaskawaTools.exe (Windows) --> sha256:eebc5324dce7adac99f886fec6fca108210d8925df2538541105f9177afdc3e9
-YaskawaTools     (Linux)   --> sha256:4838324d82f87e295fdf18ea43a45ad0431a059f9bb3291f1f001ae02b93f6dd
-YaskawaTools.dmg (macOS)   --> sha256:5abd1cc2cee2bb01fca0c96f392704c522f5fe1b1e55412a8861e7de174db1ce
+YaskawaTools.exe (Windows) --> sha256:pending — see the v1.1.11 release page
+YaskawaTools     (Linux)   --> sha256:pending — see the v1.1.11 release page
+YaskawaTools.dmg (macOS)   --> sha256:pending — see the v1.1.11 release page
 ```
 
 How to compute the digest of a downloaded file:

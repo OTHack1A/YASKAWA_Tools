@@ -105,7 +105,7 @@ class LoginWindow(QWidget):
         box_layout.addLayout(btn_layout)
         
         # Footer inside center box to align properly
-        self.lbl_footer = QLabel("v1.1.10 — Creator 0THack1A")
+        self.lbl_footer = QLabel("v1.1.11 — Creator 0THack1A")
         self.lbl_footer.setAlignment(Qt.AlignCenter)
         self.lbl_footer.setStyleSheet("color: gray; margin-top: 20px;")
         box_layout.addWidget(self.lbl_footer)
