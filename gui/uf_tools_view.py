@@ -303,7 +303,7 @@ class UfToolsView(QWidget):
                 QWidget          { background:#231811; color:white; }
                 QTabWidget::pane { border:1px solid #5C4938; }
                 QTabBar::tab     { background:#3A2D26; color:white;
-                                   padding:4px 12px; margin-right:1px; }
+                                   padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; margin-right:1px; }
                 QTabBar::tab:selected { background:#D97757; }
                 QTableWidget     { background:#231811; color:white;
                                    gridline-color:#5C4938;
@@ -314,7 +314,7 @@ class UfToolsView(QWidget):
                 QTableWidget::item:selected { background:#FF9248; color:black; }
                 QPushButton      { background:#3A2D26; color:white;
                                    border:1px solid #5C4938;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel           { color:white; }
                 QFrame[frameShape="4"] { color:#5C4938; }
@@ -324,7 +324,7 @@ class UfToolsView(QWidget):
                 QWidget          { background:#f5f5f5; color:black; }
                 QTabWidget::pane { border:1px solid #cccccc; }
                 QTabBar::tab     { background:#e0e0e0; color:black;
-                                   padding:4px 12px; margin-right:1px; }
+                                   padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; margin-right:1px; }
                 QTabBar::tab:selected { background:#D97757; color:white; }
                 QTableWidget     { background:white; color:black;
                                    gridline-color:#dddddd;
@@ -335,7 +335,7 @@ class UfToolsView(QWidget):
                 QTableWidget::item:selected { background:#FF9248; color:black; }
                 QPushButton      { background:white; color:#A85C42;
                                    border:1px solid #aaaaaa;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel           { color:black; }
                 QFrame[frameShape="4"] { color:#cccccc; }

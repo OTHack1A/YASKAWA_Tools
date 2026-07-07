@@ -317,7 +317,7 @@ class UFrameView(QWidget):
                 QTableWidget::item:selected { background:#FF9248; color:black; }
                 QPushButton { background:#3A2D26; color:white;
                               border:1px solid #5C4938;
-                              padding:2px 10px; border-radius:3px; }
+                              padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel { color:white; }
                 QFrame[frameShape="4"] { color:#5C4938; }
@@ -334,7 +334,7 @@ class UFrameView(QWidget):
                 QTableWidget::item:selected { background:#FF9248; color:black; }
                 QPushButton { background:white; color:#A85C42;
                               border:1px solid #aaaaaa;
-                              padding:2px 10px; border-radius:3px; }
+                              padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel { color:black; }
                 QFrame[frameShape="4"] { color:#cccccc; }

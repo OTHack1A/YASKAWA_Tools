@@ -16,12 +16,15 @@ YASKAWA Tools reads the backup files exported from a YRC1000 controller (`.DAT`,
 
 A dedicated module handles **DriveWizard Industrial** project files (`.YDWIProj`), parsing GA500 inverter parameters and generating a formatted PDF report for each drive in the project.
 
+<img width="1004" height="736" alt="YASKAWA Tools — main window" src="https://github.com/user-attachments/assets/7255520b-ebcb-44b8-ba7a-0f5f8b18799f" />
+
 ---
 
 ## Features
 
 - **Full robot documentation** — generates a single comprehensive PDF from a YRC1000 backup folder, merging all sections automatically (cover page, table of contents, panel log, jobs, parameters, user frames, tool files, attachments).
 - **Individual section reports** — each documentation module (targhetta, panel, jobs, parameters, points, user frames, tool files, variable names, I/O names, network config, interference cubes, form-cutting conditions, IF panel, log data) can be run independently.
+- **Instruction documentation in the JOBs PDF** *(new in v1.2.0)* — when the backup folder contains the name files produced through the tool's own Template → Names workflow (`IONAME.DAT`, `EXIONAME.DAT`, `VARNAME.DAT`), every INFORM line that references a named I/O signal or variable is automatically annotated with that name, rendered as an inline comment (e.g. `WAIT IN#(3)=ON  'IN#(3): Fotocellula 1`).
 - **GA500 inverter report** — parses `.YDWIProj` files from DriveWizard Industrial and produces a parameter report with descriptions for all 600+ GA500 parameters.
 - **INFORM flowchart** — generates a graphical flowchart (PDF + draw.io XML) of the execution flow of any JBI job.
 - **Interactive IF Panel viewer** — visualises the 15 IF panel pages with colours and I/O assignments.
@@ -124,12 +127,12 @@ yaskawa-tools/
 The binaries are published under [Releases](../../releases). Verify the file you
 downloaded matches the SHA-256 published for that release before running it.
 
-**SHA-256 for the latest release (v1.1.11 — update these on every release):**
+**SHA-256 for the latest release (v1.2.0 — update these on every release):**
 
 ```
-YaskawaTools.exe (Windows) --> sha256:pending — see the v1.1.11 release page
-YaskawaTools     (Linux)   --> sha256:pending — see the v1.1.11 release page
-YaskawaTools.dmg (macOS)   --> sha256:pending — see the v1.1.11 release page
+YaskawaTools.exe (Windows) --> sha256:pending — see the v1.2.0 release page
+YaskawaTools     (Linux)   --> sha256:pending — see the v1.2.0 release page
+YaskawaTools.dmg (macOS)   --> sha256:pending — see the v1.2.0 release page
 ```
 
 How to compute the digest of a downloaded file:
@@ -201,9 +204,9 @@ Everything else (parsing, PDF generation, logging) is performed locally.
 
 See the [**User Guide**](USER_GUIDE.md) for download, login, and step-by-step usage.
 
-> 🔑 **Access requires a password.** It is not published here — request it via
-> direct message (DM) to **0THack1A**. Please do not open public issues for
-> password requests.
+> 🔑 **Access requires a password.** It is not published here — request it by
+> e-mail at **[OThack1A@proton.me](mailto:OThack1A@proton.me)**. Please do not
+> open public issues for password requests.
 
 ---
 

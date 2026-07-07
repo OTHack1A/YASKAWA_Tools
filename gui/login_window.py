@@ -105,7 +105,7 @@ class LoginWindow(QWidget):
         box_layout.addLayout(btn_layout)
         
         # Footer inside center box to align properly
-        self.lbl_footer = QLabel("v1.1.11 — Creator 0THack1A")
+        self.lbl_footer = QLabel("v1.2.0 — Creator 0THack1A")
         self.lbl_footer.setAlignment(Qt.AlignCenter)
         self.lbl_footer.setStyleSheet("color: gray; margin-top: 20px;")
         box_layout.addWidget(self.lbl_footer)
@@ -122,11 +122,14 @@ class LoginWindow(QWidget):
                 QFrame#CenterBox {
                     border: 1px solid #5C4938;
                     background-color: #3A2D26;
+                    border-radius: 14px;
                 }
             """)
             self.txt_password.setStyleSheet("""
                 QLineEdit {
                     border: 2px solid #D97757;
+                    border-radius: 10px;
+                    padding: 2px 10px;
                     background-color: #231811;
                     color: white;
                     font-size: 18px;
@@ -137,6 +140,7 @@ class LoginWindow(QWidget):
                     background-color: #D97757;
                     color: white;
                     border: none;
+                    border-radius: 10px;
                     font-size: 16px;
                     font-weight: bold;
                 }
@@ -147,6 +151,7 @@ class LoginWindow(QWidget):
                     background-color: #5C4938;
                     color: white;
                     border: none;
+                    border-radius: 10px;
                     font-size: 16px;
                 }
                 QPushButton:hover { background-color: #3A2D26; }
@@ -158,11 +163,14 @@ class LoginWindow(QWidget):
                 QFrame#CenterBox {
                     border: 1px solid #ccc;
                     background-color: white;
+                    border-radius: 14px;
                 }
             """)
             self.txt_password.setStyleSheet("""
                 QLineEdit {
                     border: 2px solid #D97757;
+                    border-radius: 10px;
+                    padding: 2px 10px;
                     background-color: white;
                     color: black;
                     font-size: 18px;
@@ -173,6 +181,7 @@ class LoginWindow(QWidget):
                     background-color: #D97757;
                     color: white;
                     border: none;
+                    border-radius: 10px;
                     font-size: 16px;
                     font-weight: bold;
                 }
@@ -183,6 +192,7 @@ class LoginWindow(QWidget):
                     background-color: #d0d0d0;
                     color: black;
                     border: none;
+                    border-radius: 10px;
                     font-size: 16px;
                 }
                 QPushButton:hover { background-color: #b0b0b0; }
