@@ -54,6 +54,87 @@ _RE_MOTION = re.compile(
 )
 _RE_LABEL_TOK = re.compile(r'\*L\d+')
 
+# ── Instruction documentation (names from the tool's own template) ────────────
+# IONAME.DAT / EXIONAME.DAT / VARNAME.DAT carry the signal and variable names
+# the user filled in through the Template → Nomi workflow of this tool.  When
+# those files are present in the backup folder, every JBI source line that
+# references a named I/O signal or variable is annotated with that name,
+# rendered like an INFORM comment at the end of the line.
+
+_RE_IO_TOKEN  = re.compile(r'\b(IN|OT|OUT|EIN|EOUT)#\s*\((\d+)\)', re.IGNORECASE)
+_RE_VAR_TOKEN = re.compile(r'\b([BIDRSP])(\d{3,5})\b')
+
+
+def _load_name_maps(folder_path):
+    """Load I/O and variable names from the folder's DAT files (template data).
+
+    Returns {"io": {kind: [names]}, "var": {vtype: [names]}}; empty maps when
+    the files are absent or unreadable — annotation is silently skipped then.
+    """
+    maps = {"io": {}, "var": {}}
+    try:
+        from docs.names import (parse_ioname, parse_exioname, parse_varname,
+                                IONAME_FILE, EXIONAME_FILE, VARNAME_FILE)
+        io_path = os.path.join(folder_path, IONAME_FILE)
+        if os.path.isfile(io_path):
+            data = parse_ioname(io_path)
+            maps["io"]["IN"] = data.get("IN",  [])
+            maps["io"]["OT"] = data.get("OUT", [])
+        ex_path = os.path.join(folder_path, EXIONAME_FILE)
+        if os.path.isfile(ex_path):
+            data = parse_exioname(ex_path)
+            maps["io"]["EIN"]  = data.get("EXIN",  [])
+            maps["io"]["EOUT"] = data.get("EXOUT", [])
+        vn_path = os.path.join(folder_path, VARNAME_FILE)
+        if os.path.isfile(vn_path):
+            var_data, _share = parse_varname(vn_path)
+            maps["var"] = var_data
+    except Exception:
+        return {"io": {}, "var": {}}
+    return maps
+
+
+def _line_doc_comment(stripped, name_maps):
+    """Return the template-derived documentation for one source line, or ''.
+
+    I/O signals are numbered from 1 in INFORM (IN#(1) → first IONAME entry);
+    variables are numbered from 0 (B005 → VARNAME index 5).  Only tokens whose
+    name is non-empty produce an annotation; duplicates are collapsed.
+    """
+    if not stripped or stripped.startswith("'") or stripped.startswith("/"):
+        return ""
+    parts, seen = [], set()
+    try:
+        io_maps  = name_maps.get("io", {})
+        var_maps = name_maps.get("var", {})
+        if io_maps:
+            for m in _RE_IO_TOKEN.finditer(stripped):
+                kind = m.group(1).upper()
+                if kind == "OUT":
+                    kind = "OT"
+                num = int(m.group(2))
+                names = io_maps.get(kind, ())
+                if 1 <= num <= len(names):
+                    name  = (names[num - 1] or "").strip()
+                    token = f"{kind}#({num})"
+                    if name and token not in seen:
+                        seen.add(token)
+                        parts.append(f"{token}: {name}")
+        if var_maps:
+            for m in _RE_VAR_TOKEN.finditer(stripped):
+                vtype = m.group(1).upper()
+                idx   = int(m.group(2))
+                names = var_maps.get(vtype, ())
+                if 0 <= idx < len(names):
+                    name  = (names[idx] or "").strip()
+                    token = f"{vtype}{m.group(2)}"
+                    if name and token not in seen:
+                        seen.add(token)
+                        parts.append(f"{token}: {name}")
+    except Exception:
+        return ""
+    return " | ".join(parts)
+
 
 # ── Per-line colour selectors ─────────────────────────────────────────────────
 
@@ -119,8 +200,13 @@ def _tabs_to_spaces(text, tab_size=4):
     return text.expandtabs(tab_size)
 
 
-def _make_line_para(raw_line, linenum, max_digits, style, color_fn=_line_color):
-    """Build a numbered, syntax-coloured Paragraph for one source line."""
+def _make_line_para(raw_line, linenum, max_digits, style, color_fn=_line_color,
+                    doc_comment=""):
+    """Build a numbered, syntax-coloured Paragraph for one source line.
+
+    ``doc_comment`` (optional) is the template-derived documentation for the
+    instruction; it is appended at the end of the line styled as a comment.
+    """
     text = _tabs_to_spaces(raw_line.rstrip("\n\r"))
     lstripped = text.lstrip(" ")
     n_indent = len(text) - len(lstripped)
@@ -133,6 +219,11 @@ def _make_line_para(raw_line, linenum, max_digits, style, color_fn=_line_color):
             f'<font color="{_C_LINENUM}">{_xml_escape(num_str)}  </font>'
             f'<font color="{color}">{nbsp_indent}{escaped}</font>'
         )
+        if doc_comment:
+            markup += (
+                f'<font color="{_C_COMMENT}"><i>&nbsp;&nbsp;'
+                f"'{_xml_escape(doc_comment)}</i></font>"
+            )
     else:
         markup = f'<font color="{_C_LINENUM}">{_xml_escape(num_str)}</font>&nbsp;'
     return Paragraph(markup, style)
@@ -475,6 +566,15 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
     lbl_always_called = tr.get("jobs_always_called", "sempre richiamato")
     lbl_not_called    = tr.get("jobs_not_called",    "non richiamato")
 
+    # ── Instruction documentation from the tool-generated template files ──────
+    name_maps = _load_name_maps(folder_path)
+    if log_fn and (name_maps.get("io") or any(
+            any(n for n in names) for names in name_maps.get("var", {}).values())):
+        n_names = sum(1 for names in name_maps.get("io", {}).values() for n in names if n)
+        n_names += sum(1 for names in name_maps.get("var", {}).values() for n in names if n)
+        if n_names:
+            log_fn("log_jobs_doc_names", n_names)
+
     # ── Sort files for display order ──────────────────────────────────────────
     entries = _sort_files(folder_path, name_map, lbl_always_called, lbl_not_called)
 
@@ -573,8 +673,10 @@ def generate_pdf(folder_path, output_path, log_fn=None, lang="IT", page_offset=0
                 log_fn("log_file_read", base_name, len(lines))
             max_digits = len(str(len(lines)))
             for i, line in enumerate(lines):
+                doc_comment = _line_doc_comment(line.strip(), name_maps)
                 story.append(_make_line_para(line, i + 1, max_digits, s_code,
-                                             color_fn=_line_color))
+                                             color_fn=_line_color,
+                                             doc_comment=doc_comment))
         else:
             msg = tr.get("jobs_file_not_found", "[File non trovato: {}]").format(base_name + ".JBI")
             story.append(Paragraph(msg, s_miss))

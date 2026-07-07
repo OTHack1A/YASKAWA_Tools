@@ -13,7 +13,7 @@ documentation, and produces parameter reports for **GA500** inverters.
 
 The application is protected by a password. **It is not published here.**
 
-**To obtain the password, request it via direct message (DM) to the author — `0THack1A`.**
+**To obtain the password, request it by e-mail: [OThack1A@proton.me](mailto:OThack1A@proton.me).**
 Do **not** open a public issue with password requests.
 
 Security notes you should know:
@@ -60,7 +60,7 @@ on first run, verify the SHA-256 hash first, then click **More info → Run anyw
 ## 2. First launch & login
 
 1. Double-click the downloaded file to start the app.
-2. At the login window, enter the password you received by DM and confirm.
+2. At the login window, enter the password you received by e-mail and confirm.
 3. On success the main window opens with your Windows username shown in the top bar.
 
 ---
@@ -93,7 +93,7 @@ Each section can also be produced on its own:
 |---|---|---|
 | Nameplate | `SYSTEM.SYS` | Robot model, software version, axis configuration |
 | Panel | `PANELBOX.LOG` | Operator-panel configuration |
-| Jobs / INFORM | `*.JBI` | Job code listing + instruction tables |
+| Jobs / INFORM | `*.JBI` | Job code listing + instruction tables. When the backup also contains the name files generated through the tool's Template → Names workflow (`IONAME.DAT`, `VARNAME.DAT`, `EXIONAME.DAT`), each instruction referencing a named I/O signal or variable is annotated inline with that name, like a comment |
 | Parameters | `*.PRM` (`ALL.PRM`, …) | Parameter tables with current values |
 | Robot points | `*.JBI` | Taught positions |
 | User frames / Tools | tool & frame data | Calibration data |
@@ -165,12 +165,12 @@ Every generated PDF carries a header with the application logo and a **creator
 name** (default: `0THack1A`). You can change this name without rebuilding the
 application:
 
-1. Open **Help → About** (or the equivalent menu in your language).
-2. Scroll to the **Creator** section at the bottom of the dialog.
-3. Click inside the text field showing the current name and type the new one.
-   Only Western-alphabet characters, digits, spaces, and the symbols `_`, `-`, `.`
-   are accepted; any other character is silently rejected by the input field.
-4. Press **Save name** (or the equivalent button in your language).
+1. Click the **PDF name** field in the **top bar** (always visible, to the left
+   of the theme button).
+2. Type the desired name. Only Western-alphabet characters, digits, spaces, and
+   the symbols `_`, `-`, `.` are accepted; any other character is silently
+   rejected by the input field.
+3. Press **Enter** or click elsewhere to confirm.
 
 The new name is saved to `%APPDATA%\YaskawaTools\config.json` and takes effect
 immediately — all PDFs generated from that point on will carry the updated name in
@@ -186,7 +186,7 @@ their headers.
 | Locked out after wrong passwords | Wait for the on-screen countdown (**5 minutes**); the lockout is intentional and persists across restarts. |
 | A function asks for a folder and finds nothing | Make sure you selected the **backup folder**, and that it contains the expected files (see the tables above). |
 | Japanese / Cyrillic text not rendering | The app falls back to system fonts; on Windows 10/11 the required fonts are present by default. |
-| Creator name in PDFs not updating | Open Help → About, edit the name, and press **Save name**. The change takes effect for the next PDF generated. |
+| Creator name in PDFs not updating | Edit the **PDF name** field in the top bar and confirm with **Enter**. The change takes effect for the next PDF generated. |
 | Need to report a bug | Open an issue on the repository — but **never post the password** there. |
 
 ---

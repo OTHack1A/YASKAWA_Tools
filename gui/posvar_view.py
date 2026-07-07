@@ -589,16 +589,16 @@ class PosVarView(QWidget):
                                        font-size:7pt; font-weight:bold; }
                 QPushButton      { background:#3A2D26; color:white;
                                    border:1px solid #5C4938;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel           { color:white; }
                 QCheckBox        { color:white; }
                 QLineEdit        { background:#3A2D26; color:white;
-                                   border:1px solid #5C4938; border-radius:4px;
+                                   border:1px solid #5C4938; border-radius:6px;
                                    padding:3px 6px; }
                 QLineEdit:focus  { border:1px solid #FF9248; }
                 QComboBox        { background:#3A2D26; color:white;
-                                   border:1px solid #5C4938; border-radius:4px;
+                                   border:1px solid #5C4938; border-radius:6px;
                                    padding:2px 6px; }
                 QFrame[frameShape="4"] { color:#5C4938; }
             """)
@@ -615,16 +615,16 @@ class PosVarView(QWidget):
                                        font-weight:bold; padding:2px; font-size:7pt; }
                 QPushButton      { background:white; color:#A85C42;
                                    border:1px solid #aaaaaa;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel           { color:black; }
                 QCheckBox        { color:black; }
                 QLineEdit        { background:white; color:black;
-                                   border:1px solid #c4c4c4; border-radius:4px;
+                                   border:1px solid #c4c4c4; border-radius:6px;
                                    padding:3px 6px; }
                 QLineEdit:focus  { border:1px solid #D97757; }
                 QComboBox        { background:white; color:black;
-                                   border:1px solid #c4c4c4; border-radius:4px;
+                                   border:1px solid #c4c4c4; border-radius:6px;
                                    padding:2px 6px; }
                 QFrame[frameShape="4"] { color:#cccccc; }
             """)

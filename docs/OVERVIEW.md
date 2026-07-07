@@ -1,6 +1,6 @@
 # YASKAWA Tools — Application Documentation
 
-**Version:** v1.1.11
+**Version:** v1.2.0
 **Platform:** Windows 10 / 11 (64-bit) — also buildable for Linux and macOS
 **Core dependencies:** Python 3.10+, PySide6, ReportLab, openpyxl, pypdf
 
@@ -80,7 +80,7 @@ Each module is responsible for parsing one family of backup files and rendering 
 
 | Module | Source file | Function |
 |---|---|---|
-| Jobs / INFORM | `docs/jobs.py` | Reads `.JBI` files and documents the INFORM program code (listing + instruction table). |
+| Jobs / INFORM | `docs/jobs.py` | Reads `.JBI` files and documents the INFORM program code (listing + instruction table). Since v1.2.0, when the backup folder also contains the name files produced by the Template → Names workflow (`IONAME.DAT`, `EXIONAME.DAT`, `VARNAME.DAT`), every line that references a named I/O signal or variable is annotated inline with that name, rendered as an INFORM-style comment. |
 | Parameters | `docs/params.py` | Reads `.PRM` files (`ALL.PRM`, etc.) and produces parameter tables with the current values. |
 | Robot points | `docs/points.py` | Extracts the taught positions from `.JBI` files. |
 | User Frames / Tools | `docs/uf_tools.py` | Reads tool-calibration data and user-frame definitions. |
@@ -134,7 +134,7 @@ Some modules are paired with an interactive view so the data can be inspected �
 
 ## 6. Logging
 
-The `logger.py` module handles writing both to the log file and to the in-app log panel. The log file, `YASKAWAToolsLog.log`, is saved in the same directory as the executable (falling back to `%APPDATA%\YaskawaTools`). Rotation is automatic — the file is capped at **10 MB** — so the log never grows without bound.
+The `logger.py` module handles writing both to the log file and to the in-app log panel. The log file, `YASKAWAToolsLog.log`, is saved under `%APPDATA%\YaskawaTools` (falling back to the current working directory only if that location is unavailable). Rotation is automatic — the file is capped at **10 MB** — so the log never grows without bound.
 
 Every log message is internationalised through the keys defined in `translations.py`, so the log is written in the language currently selected in the interface. The log records user actions, the paths of generated files, warnings, and errors, giving a complete audit trail of a documentation session.
 

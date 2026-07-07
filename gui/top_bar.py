@@ -74,7 +74,7 @@ class TopBar(QWidget):
         self.creator_field.setStyleSheet("""
             QLineEdit {
                 border: 1px solid rgba(255, 255, 255, 0.7);
-                border-radius: 4px;
+                border-radius: 10px;
                 background-color: rgba(255, 255, 255, 0.15);
                 color: white;
                 padding: 1px 8px;

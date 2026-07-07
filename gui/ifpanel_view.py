@@ -1063,15 +1063,15 @@ class IFPanelView(QWidget):
                                         font-size:7pt; font-weight:bold; }}
                 QPushButton      {{ background:#3A2D26; color:white;
                                    border:1px solid #5C4938;
-                                   padding:2px 10px; border-radius:3px; }}
+                                   padding:4px 12px; border-radius:8px; }}
                 QPushButton:hover {{ background:#D97757; }}
                 QLabel           {{ color:white; }}
                 QLineEdit        {{ background:#3A2D26; color:white;
-                                   border:1px solid #5C4938; border-radius:4px;
+                                   border:1px solid #5C4938; border-radius:6px;
                                    padding:3px 6px; font-size:8pt; }}
                 QLineEdit:focus  {{ border:1px solid #FF9248; }}
                 QComboBox        {{ background:#3A2D26; color:white;
-                                   border:1px solid #5C4938; border-radius:4px;
+                                   border:1px solid #5C4938; border-radius:6px;
                                    padding:3px 22px 3px 8px; min-height:18px; font-size:8pt; }}
                 QComboBox:hover  {{ border:1px solid #D97757; background:#46352B; }}
                 QComboBox:focus, QComboBox:on {{ border:1px solid #FF9248; }}
@@ -1083,11 +1083,11 @@ class IFPanelView(QWidget):
                                    border-top:5px solid #E8A07F; }}
                 QComboBox::down-arrow:hover {{ border-top:5px solid #FF9248; }}
                 QComboBox QAbstractItemView {{ background:#2B211B; color:white;
-                                   border:1px solid #5C4938; border-radius:4px;
+                                   border:1px solid #5C4938; border-radius:6px;
                                    outline:0; padding:3px; font-size:8pt;
                                    selection-background-color:#D97757; selection-color:white; }}
                 QComboBox QAbstractItemView::item {{ min-height:20px; padding:3px 8px;
-                                   border-radius:3px; }}
+                                   border-radius:8px; }}
                 QComboBox QAbstractItemView::item:hover {{ background:#46352B; }}
                 QFrame[frameShape="4"] {{ color:#5C4938; }}
                 QScrollArea      {{ border:none; }}
@@ -1109,15 +1109,15 @@ class IFPanelView(QWidget):
                                         font-weight:bold; padding:2px; font-size:7pt; }}
                 QPushButton      {{ background:white; color:#A85C42;
                                    border:1px solid #aaaaaa;
-                                   padding:2px 10px; border-radius:3px; }}
+                                   padding:4px 12px; border-radius:8px; }}
                 QPushButton:hover {{ background:#D97757; color:white; }}
                 QLabel           {{ color:black; }}
                 QLineEdit        {{ background:white; color:black;
-                                   border:1px solid #c4c4c4; border-radius:4px;
+                                   border:1px solid #c4c4c4; border-radius:6px;
                                    padding:3px 6px; font-size:8pt; }}
                 QLineEdit:focus  {{ border:1px solid #D97757; }}
                 QComboBox        {{ background:white; color:black;
-                                   border:1px solid #c4c4c4; border-radius:4px;
+                                   border:1px solid #c4c4c4; border-radius:6px;
                                    padding:3px 22px 3px 8px; min-height:18px; font-size:8pt; }}
                 QComboBox:hover  {{ border:1px solid #D97757; background:#FFF7F1; }}
                 QComboBox:focus, QComboBox:on {{ border:1px solid #D97757; }}
@@ -1129,11 +1129,11 @@ class IFPanelView(QWidget):
                                    border-top:5px solid #B0703F; }}
                 QComboBox::down-arrow:hover {{ border-top:5px solid #D97757; }}
                 QComboBox QAbstractItemView {{ background:white; color:black;
-                                   border:1px solid #d8d8d8; border-radius:4px;
+                                   border:1px solid #d8d8d8; border-radius:6px;
                                    outline:0; padding:3px; font-size:8pt;
                                    selection-background-color:#D97757; selection-color:white; }}
                 QComboBox QAbstractItemView::item {{ min-height:20px; padding:3px 8px;
-                                   border-radius:3px; }}
+                                   border-radius:8px; }}
                 QComboBox QAbstractItemView::item:hover {{ background:#FFE8DC; }}
                 QFrame[frameShape="4"] {{ color:#cccccc; }}
                 QScrollArea      {{ border:none; }}

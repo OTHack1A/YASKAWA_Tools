@@ -233,7 +233,7 @@ class _ExcelPreview(QWidget):
                 QWidget          { background:#231811; color:white; }
                 QTabWidget::pane { border:1px solid #5C4938; }
                 QTabBar::tab     { background:#3A2D26; color:white;
-                                   padding:4px 10px; margin-right:1px; }
+                                   padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; }
                 QTabBar::tab:selected { background:#D97757; }
                 QTableWidget     { background:#231811; color:white;
                                    gridline-color:#5C4938;
@@ -244,7 +244,7 @@ class _ExcelPreview(QWidget):
                                        border:1px solid #5C4938; padding:2px; }
                 QPushButton      { background:#3A2D26; color:white;
                                    border:1px solid #5C4938;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel           { color:white; }
                 QFrame[frameShape="4"] { color:#5C4938; }
@@ -254,7 +254,7 @@ class _ExcelPreview(QWidget):
                 QWidget          { background:#f5f5f5; color:black; }
                 QTabWidget::pane { border:1px solid #cccccc; }
                 QTabBar::tab     { background:#e0e0e0; color:black;
-                                   padding:4px 10px; margin-right:1px; }
+                                   padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; }
                 QTabBar::tab:selected { background:#D97757; color:white; }
                 QTableWidget     { background:white; color:black;
                                    gridline-color:#dddddd;
@@ -266,7 +266,7 @@ class _ExcelPreview(QWidget):
                                        font-weight:bold; padding:2px; }
                 QPushButton      { background:white; color:#A85C42;
                                    border:1px solid #aaaaaa;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel           { color:black; }
                 QFrame[frameShape="4"] { color:#cccccc; }
@@ -776,7 +776,7 @@ class _PdfPreview(QWidget):
                 QWidget          { background:#231811; color:white; }
                 QPushButton      { background:#3A2D26; color:white;
                                    border:1px solid #5C4938;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel           { color:white; }
                 QFrame[frameShape="4"] { color:#5C4938; }
@@ -786,7 +786,7 @@ class _PdfPreview(QWidget):
                 QWidget          { background:#f5f5f5; color:black; }
                 QPushButton      { background:white; color:#A85C42;
                                    border:1px solid #aaaaaa;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel           { color:black; }
                 QFrame[frameShape="4"] { color:#cccccc; }
@@ -932,7 +932,7 @@ class _BackupView(QWidget):
                 QWidget          { background:#231811; color:white; }
                 QTabWidget::pane { border:1px solid #5C4938; }
                 QTabBar::tab     { background:#3A2D26; color:white;
-                                   padding:4px 10px; margin-right:1px; }
+                                   padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; }
                 QTabBar::tab:selected { background:#D97757; }
                 QTableWidget     { background:#231811; color:white;
                                    gridline-color:#5C4938;
@@ -943,7 +943,7 @@ class _BackupView(QWidget):
                                        border:1px solid #5C4938; padding:2px; }
                 QPushButton      { background:#3A2D26; color:white;
                                    border:1px solid #5C4938;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel           { color:white; }
                 QFrame[frameShape="4"] { color:#5C4938; }
@@ -953,7 +953,7 @@ class _BackupView(QWidget):
                 QWidget          { background:#f5f5f5; color:black; }
                 QTabWidget::pane { border:1px solid #cccccc; }
                 QTabBar::tab     { background:#e0e0e0; color:black;
-                                   padding:4px 10px; margin-right:1px; }
+                                   padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; }
                 QTabBar::tab:selected { background:#D97757; color:white; }
                 QTableWidget     { background:white; color:black;
                                    gridline-color:#dddddd;
@@ -965,7 +965,7 @@ class _BackupView(QWidget):
                                        font-weight:bold; padding:2px; }
                 QPushButton      { background:white; color:#A85C42;
                                    border:1px solid #aaaaaa;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel           { color:black; }
                 QFrame[frameShape="4"] { color:#cccccc; }
@@ -1173,7 +1173,7 @@ class _DriveView(QWidget):
                 QWidget          { background:#231811; color:white; }
                 QTabWidget::pane { border:1px solid #5C4938; }
                 QTabBar::tab     { background:#3A2D26; color:white;
-                                   padding:4px 10px; margin-right:1px; }
+                                   padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; }
                 QTabBar::tab:selected { background:#D97757; }
                 QTableWidget     { background:#231811; color:white;
                                    gridline-color:#5C4938;
@@ -1184,7 +1184,7 @@ class _DriveView(QWidget):
                                        border:1px solid #5C4938; padding:2px; }
                 QPushButton      { background:#3A2D26; color:white;
                                    border:1px solid #5C4938;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel           { color:white; }
                 QFrame[frameShape="4"] { color:#5C4938; }
@@ -1196,7 +1196,7 @@ class _DriveView(QWidget):
                 QWidget          { background:#f5f5f5; color:black; }
                 QTabWidget::pane { border:1px solid #cccccc; }
                 QTabBar::tab     { background:#e0e0e0; color:black;
-                                   padding:4px 10px; margin-right:1px; }
+                                   padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; }
                 QTabBar::tab:selected { background:#D97757; color:white; }
                 QTableWidget     { background:white; color:black;
                                    gridline-color:#dddddd;
@@ -1208,7 +1208,7 @@ class _DriveView(QWidget):
                                        font-weight:bold; padding:2px; }
                 QPushButton      { background:white; color:#A85C42;
                                    border:1px solid #aaaaaa;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel           { color:black; }
                 QFrame[frameShape="4"] { color:#cccccc; }
@@ -1295,7 +1295,7 @@ class _IpNetView(QWidget):
                 QHeaderView::section { background:#8A4533; color:white;
                                        border:1px solid #5C4938; padding:2px; }
                 QPushButton { background:#3A2D26; color:white; border:1px solid #5C4938;
-                              padding:2px 10px; border-radius:3px; }
+                              padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel { color:white; }
                 QFrame[frameShape="4"] { color:#5C4938; }
@@ -1309,7 +1309,7 @@ class _IpNetView(QWidget):
                 QHeaderView::section { background:#D97757; color:white;
                                        border:1px solid #cccccc; font-weight:bold; padding:2px; }
                 QPushButton { background:white; color:#A85C42; border:1px solid #aaaaaa;
-                              padding:2px 10px; border-radius:3px; }
+                              padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel { color:black; }
                 QFrame[frameShape="4"] { color:#cccccc; }
@@ -1381,10 +1381,10 @@ class _CompilaView(QWidget):
                 tabs[vtype] = rows
 
         for tag, label, src_names, src_vals, readonly in [
-            ('IN',    'IN',    io_names.get('IN', []),    io_values.get('IN', []),    True),
-            ('OUT',   'OUT',   io_names.get('OUT', []),   io_values.get('OUT', []),   False),
-            ('EXIN',  'EXIN',  exio_names.get('IN', []),  exio_values.get('IN', []),  True),
-            ('EXOUT', 'EXOUT', exio_names.get('OUT', []), exio_values.get('OUT', []), False),
+            ('IN',    'IN',    io_names.get('IN', []),      io_values.get('IN', []),      True),
+            ('OUT',   'OUT',   io_names.get('OUT', []),     io_values.get('OUT', []),     False),
+            ('EXIN',  'EXIN',  exio_names.get('EXIN', []),  exio_values.get('EXIN', []),  True),
+            ('EXOUT', 'EXOUT', exio_names.get('EXOUT', []), exio_values.get('EXOUT', []), False),
         ]:
             rows = []
             for i, name in enumerate(src_names):
@@ -1705,12 +1705,12 @@ class _CompilaView(QWidget):
                 QHeaderView::section { background:#8A4533; color:white;
                                        border:1px solid #5C4938; padding:2px; }
                 QPushButton { background:#3A2D26; color:white; border:1px solid #5C4938;
-                              padding:2px 10px; border-radius:3px; }
+                              padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel { color:white; }
                 QFrame[frameShape="4"] { color:#5C4938; }
                 QTabWidget::pane { border:1px solid #5C4938; }
-                QTabBar::tab { background:#3A2D26; color:white; padding:4px 12px; }
+                QTabBar::tab { background:#3A2D26; color:white; padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; }
                 QTabBar::tab:selected { background:#D97757; }
             """)
         else:
@@ -1722,12 +1722,12 @@ class _CompilaView(QWidget):
                 QHeaderView::section { background:#D97757; color:white;
                                        border:1px solid #cccccc; font-weight:bold; padding:2px; }
                 QPushButton { background:white; color:#A85C42; border:1px solid #aaaaaa;
-                              padding:2px 10px; border-radius:3px; }
+                              padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel { color:black; }
                 QFrame[frameShape="4"] { color:#cccccc; }
                 QTabWidget::pane { border:1px solid #cccccc; }
-                QTabBar::tab { background:#e8e8e8; color:#333333; padding:4px 12px; }
+                QTabBar::tab { background:#e8e8e8; color:#333333; padding:5px 12px; margin-right:2px; border-top-left-radius:6px; border-top-right-radius:6px; }
                 QTabBar::tab:selected { background:#D97757; color:white; }
             """)
 
@@ -1985,7 +1985,7 @@ class _GA500ParamsView(QWidget):
                                        border:1px solid #5C4938; padding:2px; }
                 QPushButton      { background:#3A2D26; color:white;
                                    border:1px solid #5C4938;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel           { color:white; }
                 QFrame[frameShape="4"] { color:#5C4938; }
@@ -2003,7 +2003,7 @@ class _GA500ParamsView(QWidget):
                                        font-weight:bold; padding:2px; }
                 QPushButton      { background:white; color:#A85C42;
                                    border:1px solid #aaaaaa;
-                                   padding:2px 10px; border-radius:3px; }
+                                   padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel           { color:black; }
                 QFrame[frameShape="4"] { color:#cccccc; }
@@ -2408,7 +2408,7 @@ class _AiutoView(QWidget):
                 QTextBrowser { background:#231811; color:white; border:none; }
                 QPushButton { background:#3A2D26; color:white;
                               border:1px solid #5C4938;
-                              padding:2px 10px; border-radius:3px; }
+                              padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; }
                 QLabel { color:white; }
             """)
@@ -2418,7 +2418,7 @@ class _AiutoView(QWidget):
                 QTextBrowser { background:white; color:black; border:none; }
                 QPushButton { background:white; color:#A85C42;
                               border:1px solid #aaaaaa;
-                              padding:2px 10px; border-radius:3px; }
+                              padding:4px 12px; border-radius:8px; }
                 QPushButton:hover { background:#D97757; color:white; }
                 QLabel { color:black; }
             """)
@@ -4537,11 +4537,26 @@ class MainWindow(QMainWindow):
             return ''
 
     def _save_work_folder(self, folder):
-        """Persist the chosen work folder to config."""
+        """Persist the chosen work folder to config.
+
+        Merges into the existing config.json (atomic replace) so other keys —
+        notably the PDF creator name saved by config.py — are never lost.
+        """
         try:
             import json
-            with open(self._config_path(), 'w', encoding='utf-8') as f:
-                json.dump({'work_folder': folder}, f)
+            path = self._config_path()
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                if not isinstance(data, dict):
+                    data = {}
+            except Exception:
+                data = {}
+            data['work_folder'] = folder
+            tmp = path + '.tmp'
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False)
+            os.replace(tmp, path)
         except Exception:
             pass
 

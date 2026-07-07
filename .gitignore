@@ -21,6 +21,9 @@ dist/YaskawaTools.dmg
 
 # Local AI scratch notes / nested helper repo — private, never in the repo
 AI-noters/
+.agents/
+skills-lock.json
+tmpv1110/
 
 # Code-signing material must never be committed
 *.pfx
